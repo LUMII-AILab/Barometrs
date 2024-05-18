@@ -1,0 +1,6 @@
+services:
+  web:
+    build:
+      dockerfile: Dockerfile.production
+    ports:
+      - "8000:8000"  # FastAPI application port

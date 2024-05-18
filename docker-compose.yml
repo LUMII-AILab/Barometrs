@@ -1,0 +1,40 @@
+services:
+  web:
+    build:
+      context: .
+      args:
+        - DATABASE_URL=${DATABASE_URL}
+    container_name: ${WEB_CONTAINER_NAME}
+    volumes:
+      - .:/app
+      - news-comments-app-language_models_volume:/app/models # Mount language models
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: ${DB_CONTAINER_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d # Enable vector extension
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5433:5432"  # PostgreSQL port
+
+volumes:
+  postgres_data:
+  # Created manually. Contains language models from ./models directory. Use download_models.py to download models.
+  news-comments-app-language_models_volume:
+    external: true

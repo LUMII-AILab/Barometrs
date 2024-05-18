@@ -1,0 +1,31 @@
+# Use the PyTorch base image
+FROM pytorch/pytorch:2.2.1-cuda12.1-cudnn8-runtime
+
+# Install SSH server
+RUN apt-get update && apt-get install -y openssh-server
+RUN mkdir /var/run/sshd
+
+# Set the root password (change to a secure password)
+RUN echo 'root:password' | chpasswd
+
+# Configure SSH to permit root login
+RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+# Expose the SSH port
+EXPOSE 22
+
+# Set the working directory in the container
+WORKDIR /app
+
+RUN apt-get install -y build-essential libpython3-dev
+
+# Install packages specified in requirements.txt
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Get the environment variables
+ARG DATABASE_URL
+
+RUN echo "DATABASE_URL=${DATABASE_URL}" >> /etc/environment
+
+# Start debugging server via SSH at debug_server.py, default port 8001
+CMD service ssh start && sleep infinity

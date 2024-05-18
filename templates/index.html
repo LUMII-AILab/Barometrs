@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>News Comment Sentiment Analysis</title>
+    <script src="/static/modules/bootstrap-5.3.3-dist/js/bootstrap.bundle.js"></script>
+    <script src="/static/modules/jquery-3.7.1-min/jquery.js"></script>
+    <script src="/static/modules/plotly-2.32.0.min.js"></script>
+    <script src="/static/modules/tabulator/dist/js/tabulator.min.js"></script>
+    <link rel="stylesheet" href="/static/modules/bootstrap-5.3.3-dist/css/bootstrap.css">
+    <link rel="stylesheet" href="/static/modules/tabulator/dist/css/tabulator.min.css">
+    <link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body style="padding: 20px">
+    <h2>1. Analysis for period.</h2>
+    <form id="analysisRequestForm">
+        <label for="analysisStartMonth">Start Month:</label>
+        <select id="analysisStartMonth" name="analysisStartMonth" onchange="updateMonthOptions()">
+            {% for month in allowed_months.months %}
+                <option value="{{ month }}" {{ 'selected="selected"' if month == allowed_months.min_month }}>{{ month }}</option>
+            {% endfor %}
+        </select>
+        <label for="analysisEndMonth">End Month:</label>
+        <select id="analysisEndMonth" name="analysisEndMonth" onchange="updateMonthOptions()">
+            {% for month in allowed_months.months %}
+                <option value="{{ month }}" {{ 'selected="selected"' if month == allowed_months.max_month }}>{{ month }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="analysisGroupBy">Group By:</label>
+        <select id="analysisGroupBy" name="analysisGroupBy">
+            <option value="month">Month</option>
+            <option value="week">Week</option>
+            <option value="day">Day</option>
+        </select>
+
+        {# Dropdown with prediction type #}
+        <label for="predictionType">Prediction Type:</label>
+        <select id="predictionType" name="predictionType">
+            <option value="ekman" selected>Go Emotions Ekman (6 base emotions + neutral)</option>
+            <option value="normal">Go Emotions (26 base emotions + neutral)</option>
+        </select>
+        <input type="text" name="currentPredictionType" value="ekman" style="display: none;">
+        <input type="date" name="requestDate" style="display: none;">
+        <input type="text" name="language" value="lv" style="display: none;">
+        <button type="button" id="requestAnalysis">Submit</button>
+    </form>
+    <hr>
+    <label for="chartOption">Layout:</label>
+    <select id="chartOption" name="chartOption" onchange="updateCharts(this.value)">
+        <option value="all" selected>All Charts</option>
+        <option value="lv">LV Charts</option>
+        <option value="ru">RU Charts</option>
+        <option value="totals">Totals Only</option>
+    </select>
+    <div id="layoutConfig" style="display: none;">
+        <label for="compactLayoutCheckbox">Compact Layout:</label>
+        <input id="compactLayoutCheckbox" type="checkbox" name="compactLayoutCheckbox" value="1" checked onchange="applyCompactMode()">
+    </div>
+    <div id="charts" class="flex-container">
+        <div class="chart chart-title">LV Comments</div>
+        <div class="chart chart-title">RU Comments</div>
+        <div class="chart chart-title">All Comments</div>
+        <div class="chart lv-chart" id="emotionsPercentDayChartLV"></div>
+        <div class="chart ru-chart" id="emotionsPercentDayChartRU"></div>
+        <div class="chart totals-chart" id="emotionsPercentDayChartTotal"></div>
+        <div class="chart lv-chart" id="emotionsPercentPieChartLV"></div>
+        <div class="chart ru-chart" id="emotionsPercentPieChartRU"></div>
+        <div class="chart totals-chart" id="emotionsPercentPieChartTotal"></div>
+        <div class="chart lv-chart" id="emotionsCountDayChartLV"></div>
+        <div class="chart ru-chart" id="emotionsCountDayChartRU"></div>
+        <div class="chart totals-chart" id="emotionsCountDayChartTotal"></div>
+        <div class="chart lv-chart" id="commentAndArticleCountChartLV"></div>
+        <div class="chart ru-chart" id="commentAndArticleCountChartRU"></div>
+        <div class="chart totals-chart" id="commentAndArticleCountChartTotal"></div>
+    </div>
+    <div style="font-size: 2rem;">2. Analysis for day: <div id="requestDate" style="display: inline;"><i>select data point from any of the plot charts</i></div></div>
+
+    <h2>Commented articles</h2>
+    <div id="articlesTable" class="tabulator-table"></div>
+
+    <h2>Clustered commented articles</h2>
+    <p>Note: <i>Articles are clustered by their headline. Articles with potentially similar headlines should be grouped together.</i></p>
+    <div class="clusterFormDescription" style="display: none;">
+        <p>
+          Clustering is performed using the HDBSCAN algorithm. The default settings use a minimum cluster size of 2 and minimum samples of 2.<br>
+          <strong>Minimum cluster size:</strong> The smallest number of articles that can form a cluster. If a group of articles is fewer than this number, it will not be recognized as a cluster.<br>
+          <strong>Minimum samples:</strong> The smallest number of close neighbors an article must have to be considered a core point of a cluster. Determines the cluster density requirement and affects algorithm's sensitivity to noise.
+        </p>
+        <form id="clusteredArticlesForm">
+            <label for="minClusterSize">Minimum cluster size:</label>
+            <input type="number" id="minClusterSize" name="minClusterSize" value="2" min="2" onchange="
+                if (parseInt(this.value) < 2) {
+                    this.value = 2;
+                }
+            ">
+            <label for="minSamples">Minimum samples:</label>
+            <input type="number" id="minSamples" name="minSamples" value="2" min="1" onchange="
+                if (parseInt(this.value) < 1) {
+                    this.value = 1;
+                }
+            ">
+            <button type="button" id="clusterArticlesButton">Re-cluster</button>
+        </form>
+    </div>
+    <div id="clusteredArticlesTable" class="tabulator-table"></div>
+
+    <h2>Emotion keywords</h2>
+    <i>Note: Emotion keywords are extracted from comments. They may not be directly related to the articles or their content.</i>
+    <i>Processing time of many comments can take up to 1.5 minutes.</i>
+    <div id="emotionKeywordsTable" class="tabulator-table"></div>
+
+    <h2>Comments</h2>
+    <button type="button" value="emotions" id="groupCommentsBy">Group by: Articles</button>
+    <div id="predictedCommentsTable" class="tabulator-table"></div>
+    <script src="/static/js/main.js"></script>
+</body>
+</html>

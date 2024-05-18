@@ -1,0 +1,13 @@
+fastapi[all]
+uvicorn[standard]
+jinja2
+sqlalchemy
+psycopg2-binary
+fasttext-wheel
+pandas
+transformers
+pgvector
+torch
+sentence_transformers
+keybert
+hdbscan

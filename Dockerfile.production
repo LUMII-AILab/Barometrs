@@ -1,0 +1,16 @@
+# Use the PyTorch base image
+FROM pytorch/pytorch:2.2.1-cuda12.1-cudnn8-runtime
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Install dependencies for development
+RUN apt-get update && \
+    apt-get install -y build-essential libpython3-dev
+
+# Copy requirements file and install Python dependencies
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Start SSH and FastAPI (using uvicorn)
+CMD uvicorn main:app --host 0.0.0.0 --port 8000

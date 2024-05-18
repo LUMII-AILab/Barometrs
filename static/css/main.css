@@ -1,0 +1,60 @@
+.flex-container {
+    display: flex;
+    flex-wrap: wrap;  /* Allows items to wrap onto the next line */
+    justify-content: space-between; /* Distributes space between and around content items */
+    align-items: flex-start; /* Aligns items to the start of the flex container */
+
+    .chart {
+        flex-basis: 33%; /* Each chart will take up roughly 30% of the flex container's width */
+        height: 400px; /* Fixed height, adjust as needed */
+
+        &.chart-title {
+            height: 50px; /* Fixed height, adjust as needed */
+            text-align: center;
+            font-size: 1.5em;
+        }
+    }
+
+    &.show-lv-charts,
+    &.show-ru-charts,
+    &.show-totals-charts {
+        .chart {
+            flex-basis: 100%;
+            display: none;
+
+            &.chart-title {
+                display: none;
+            }
+        }
+
+        &.compact-layout {
+            .chart {
+                flex-basis: 50%;
+            }
+        }
+    }
+
+    &.show-lv-charts {
+        .chart.lv-chart {
+            display: block;
+        }
+    }
+
+    &.show-ru-charts {
+        .chart.ru-chart {
+            display: block;
+        }
+    }
+
+    &.show-totals-charts {
+        .chart.totals-chart {
+            display: block;
+        }
+    }
+}
+
+.tabulator-table {
+    max-width: 1200px;
+    resize: both;
+    overflow: hidden;
+}
