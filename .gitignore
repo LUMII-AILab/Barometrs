@@ -1,0 +1,11 @@
+data/
+models/
+.venv/
+.env
+
+# ignore all .idea
+.idea/
+
+# ignore __pycache__
+__pycache__/
+**/__pycache__/
