@@ -265,9 +265,15 @@ def get_predicted_comments_max_emotion_articles_clustered(
         return None
 
     if lang and lang != 'all' and lang in supported_languages:
-        query = query.filter(models.PredictedComment.text_lang == lang)
+        query = query.filter(
+            models.PredictedComment.text_lang == lang,
+            models.RawArticle.headline_lang == lang
+        )
     else:
-        query = query.filter(models.PredictedComment.text_lang.in_(supported_languages))
+        query = query.filter(
+            models.PredictedComment.text_lang.in_(supported_languages),
+            models.RawArticle.headline_lang.in_(supported_languages)
+        )
 
     # Ensure results are unique
     query = query.distinct()
