@@ -6,6 +6,6 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d # 
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d # Build and start containers (dev)
 docker-compose down # Stop and remove containers
 
-docker volume create news-comments-app-language_models_volume
-docker run --rm -v %cd%/models:/source -v news-comments-app-language_models_volume:/target ubuntu cp -a /source/. /target/
-docker volume rm news-comments-app-language_models_volume
+docker volume create barometrs-language_models_volume
+docker run --rm -v %cd%/models:/source -v barometrs-language_models_volume:/target ubuntu cp -a /source/. /target/
+docker volume rm barometrs-language_models_volume

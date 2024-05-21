@@ -7,7 +7,7 @@ services:
     container_name: ${WEB_CONTAINER_NAME}
     volumes:
       - .:/app
-      - news-comments-app-language_models_volume:/app/models # Mount language models
+      - barometrs-language_models_volume:/app/models # Mount language models
     depends_on:
       - db
     environment:
@@ -36,5 +36,5 @@ services:
 volumes:
   postgres_data:
   # Created manually. Contains language models from ./models directory. Use download_models.py to download models.
-  news-comments-app-language_models_volume:
+  barometrs-language_models_volume:
     external: true
