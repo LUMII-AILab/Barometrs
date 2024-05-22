@@ -1,6 +1,32 @@
 services:
   web:
     build:
-      dockerfile: Dockerfile.production
+      context: .
+      dockerfile: Dockerfile.prod
+      args:
+        - DATABASE_URL=${DATABASE_URL}
+    container_name: ${WEB_CONTAINER_NAME}
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
     ports:
       - "8000:8000"  # FastAPI application port
+
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: ${DB_CONTAINER_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d # Enable vector extension
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5433:5432"  # PostgreSQL port
+
+volumes:
+  postgres_data:

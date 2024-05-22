@@ -1,7 +1,44 @@
 services:
   web:
     build:
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.dev
+      args:
+        - DATABASE_URL=${DATABASE_URL}
+    container_name: ${WEB_CONTAINER_NAME}
+    volumes:
+      - .:/app
+      - barometrs-language_models_volume:/app/models # Mount language models
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
     ports:
       - "2222:22"    # SSH port mapped to 2222 on host
       - "8001:8001"  # FastAPI debug port
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: ${DB_CONTAINER_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d # Enable vector extension
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5433:5432"  # PostgreSQL port
+
+volumes:
+  postgres_data:
+  # Created manually. Contains language models from ./models directory. Use download_models.py to download models.
+  barometrs-language_models_volume:
+    external: true
