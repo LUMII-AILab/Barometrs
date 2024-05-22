@@ -1,7 +1,6 @@
 from datetime import date
 from sqlalchemy.orm import Session
 from sqlalchemy import func, cast, Date, or_, and_
-from core import load_model
 from db import models
 import pandas as pd
 
@@ -343,73 +342,36 @@ def get_predicted_comments_max_emotion_articles_by_type_and_date(db: Session, pr
     return df.to_dict(orient='records')
 
 def get_predicted_comments_emotion_keywords(db: Session, prediction_type: str, request_date: date, lang: str):
-    if prediction_type == 'normal':
-        query = db.query(
-            models.PredictedComment.text.label('comment_text'),
-            models.PredictedComment.text_lang.label('text_lang'),
-            models.PredictedComment.normal_prediction_emotion.label('emotion'),
-            models.PredictedComment.normal_prediction_score.label('emotion_score'),
-        )
-    elif prediction_type == 'ekman':
-        query = db.query(
-            models.PredictedComment.text.label('comment_text'),
-            models.PredictedComment.text_lang.label('text_lang'),
-            models.PredictedComment.ekman_prediction_emotion.label('emotion'),
-            models.PredictedComment.ekman_prediction_score.label('emotion_score'),
-        )
-    else:
-        return None
-
-    query = query.filter(
-        cast(models.PredictedComment.comment_timestamp, Date) == request_date
+    query = db.query(
+        models.EmotionKeywordsByDay.language.label('language'),
+        models.EmotionKeywordsByDay.keywords_json.label('keywords')
+    ).filter(
+        models.EmotionKeywordsByDay.date == request_date,
+        models.EmotionKeywordsByDay.prediction_type == prediction_type
     )
 
     if lang and lang != 'all' and lang in supported_languages:
-        query = query.filter(models.PredictedComment.text_lang == lang)
+        query = query.filter(models.EmotionKeywordsByDay.language == lang)
     else:
-        query = query.filter(models.PredictedComment.text_lang.in_(supported_languages))
+        query = query.filter(models.EmotionKeywordsByDay.language.in_(supported_languages))
 
     results = query.all()
 
     if not results:
         return None
 
-    df = pd.DataFrame(results, columns=['comment_text', 'text_lang', 'emotion', 'emotion_score'])
+    df = pd.DataFrame(columns=['emotion', 'keywords'])
 
-    def extract_keywords(model, text, stopword_list=None):
-        keywords = model.extract_keywords(text, stop_words=stopword_list, keyphrase_ngram_range=(2, 2), top_n=5)
-        return keywords
+    for result in results:
+        language = result.language
 
-    if lang in supported_languages:
-        kb_model = load_model.get_keybert_model_by_language_and_prediction_type(lang, prediction_type)
-        stopword_list = load_model.get_stopwords(lang)
+        # Create a temporary DataFrame from JSONB
+        temp_df = pd.DataFrame(result.keywords.items(), columns=['emotion', 'keywords'])
 
-        emotion_concat_text = df.groupby('emotion')['comment_text'].agg(lambda texts: ' '.join(texts))
-        keywords_by_emotion = emotion_concat_text.apply(lambda text: extract_keywords(kb_model, text, stopword_list))
+        # Prefix each emotion with the language code
+        temp_df['emotion'] = language + "_" + temp_df['emotion']
 
-        keywords_df = keywords_by_emotion.reset_index()
-        keywords_df.columns = ['emotion', 'keywords']
-    else:
-        kb_lvbert = load_model.get_keybert_model_by_language_and_prediction_type('lv', prediction_type)
-        lv_stopwords = load_model.get_stopwords('lv')
+        # Append the temporary DataFrame
+        df = pd.concat([df, temp_df], ignore_index=True)
 
-        kb_rubert = load_model.get_keybert_model_by_language_and_prediction_type('ru', prediction_type)
-        ru_stopwords = load_model.get_stopwords('ru')
-
-        lv_emotion_concat_text = df[df['text_lang'] == 'lv'].groupby('emotion')['comment_text'].agg(lambda texts: ' '.join(texts))
-        ru_emotion_concat_text = df[df['text_lang'] == 'ru'].groupby('emotion')['comment_text'].agg(lambda texts: ' '.join(texts))
-
-        keywords_by_emotion_lv = lv_emotion_concat_text.apply(lambda text: extract_keywords(kb_lvbert, text, lv_stopwords))
-        keywords_by_emotion_ru = ru_emotion_concat_text.apply(lambda text: extract_keywords(kb_rubert, text, ru_stopwords))
-
-        keywords_df_lv = keywords_by_emotion_lv.reset_index()
-        keywords_df_lv.columns = ['emotion', 'keywords']
-        keywords_df_lv['emotion'] = 'lv_' + keywords_df_lv['emotion']
-
-        keywords_df_ru = keywords_by_emotion_ru.reset_index()
-        keywords_df_ru.columns = ['emotion', 'keywords']
-        keywords_df_ru['emotion'] = 'ru_' + keywords_df_ru['emotion']
-
-        keywords_df = pd.concat([keywords_df_lv, keywords_df_ru], ignore_index=True)
-
-    return keywords_df.to_dict(orient='records')
+    return df.to_dict(orient='records')
