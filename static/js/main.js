@@ -273,6 +273,7 @@ $(document).ready(function() {
                 },
             ],
             height: 500,
+            renderVerticalBuffer: 1500,
             layout: "fitColumns",
             columns: [
                 {title: "ID", field: "id", width: 80},
