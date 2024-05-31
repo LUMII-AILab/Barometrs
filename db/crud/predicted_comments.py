@@ -47,59 +47,56 @@ def get_predicted_comments_max_emotion_chart_data(
         end_month: date,
         group_by: str = 'month'
 ):
-    if start_month < min_date:
-        start_month = min_date
-
-    if end_month < min_date:
-        end_month = min_date
-
+    start_month = max(start_month, min_date)
+    end_month = max(end_month, min_date)
     if start_month > end_month:
         start_month = end_month
 
+    # Determine the fields based on the prediction type
+    fields = {
+        'timestamp': models.PredictedComment.comment_timestamp.label('timestamp'),
+        'article_id': models.PredictedComment.article_id.label('article_id'),
+        'text_lang': models.PredictedComment.text_lang.label('text_lang'),
+        'emotion': None,
+        'emotion_score': None
+    }
+
     if prediction_type == 'normal':
-        query = db.query(
-            models.PredictedComment.comment_timestamp.label('timestamp'),
-            models.PredictedComment.article_id.label('article_id'),
-            models.PredictedComment.normal_prediction_emotion.label('emotion'),
-            models.PredictedComment.normal_prediction_score.label('emotion_score'),
-            models.PredictedComment.text_lang.label('text_lang'),
-        )
+        fields['emotion'] = models.PredictedComment.normal_prediction_emotion.label('emotion')
+        fields['emotion_score'] = models.PredictedComment.normal_prediction_score.label('emotion_score')
     elif prediction_type == 'ekman':
-        query = db.query(
-            models.PredictedComment.comment_timestamp.label('timestamp'),
-            models.PredictedComment.article_id.label('article_id'),
-            models.PredictedComment.ekman_prediction_emotion.label('emotion'),
-            models.PredictedComment.ekman_prediction_score.label('emotion_score'),
-            models.PredictedComment.text_lang.label('text_lang'),
-        )
+        fields['emotion'] = models.PredictedComment.ekman_prediction_emotion.label('emotion')
+        fields['emotion_score'] = models.PredictedComment.ekman_prediction_score.label('emotion_score')
     else:
         return None
 
-    # filter my month and year
+    query = db.query(
+        fields['timestamp'],
+        fields['article_id'],
+        fields['emotion'],
+        fields['emotion_score'],
+        fields['text_lang']
+    )
+
+    # Beginning of the start month
+    start_date = start_month.replace(day=1)
+
+    # Exclusive end of interval
+    if end_month.month == 12:
+        end_date = end_month.replace(year=end_month.year + 1, month=1, day=1)
+    else:
+        end_date = end_month.replace(month=end_month.month + 1, day=1)
+
+    # Define filter condition to cover the whole interval in one range
+    condition = and_(
+        models.PredictedComment.comment_timestamp >= start_date,
+        models.PredictedComment.comment_timestamp < end_date
+    )
+
+    # Apply the filters to the query
     results = query.filter(
         models.PredictedComment.text_lang.in_(supported_languages),
-        or_(
-            and_(
-                func.date_part('year', models.PredictedComment.comment_timestamp) > start_month.year,
-                func.date_part('year', models.PredictedComment.comment_timestamp) < end_month.year
-            ),
-            and_(
-                func.date_part('year', models.PredictedComment.comment_timestamp) == start_month.year,
-                func.date_part('year', models.PredictedComment.comment_timestamp) == end_month.year,
-                func.date_part('month', models.PredictedComment.comment_timestamp) >= start_month.month,
-                func.date_part('month', models.PredictedComment.comment_timestamp) <= end_month.month
-            ),
-            and_(
-                func.date_part('year', models.PredictedComment.comment_timestamp) == start_month.year,
-                func.date_part('month', models.PredictedComment.comment_timestamp) >= start_month.month,
-                start_month.year < end_month.year
-            ),
-            and_(
-                func.date_part('year', models.PredictedComment.comment_timestamp) == end_month.year,
-                func.date_part('month', models.PredictedComment.comment_timestamp) <= end_month.month,
-                start_month.year < end_month.year
-            )
-        )
+        condition
     ).all()
 
     if not results:

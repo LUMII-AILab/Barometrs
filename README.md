@@ -9,3 +9,8 @@ docker-compose down # Stop and remove containers
 docker volume create barometrs-language_models_volume
 docker run --rm -v %cd%/models:/source -v barometrs-language_models_volume:/target ubuntu cp -a /source/. /target/
 docker volume rm barometrs-language_models_volume
+
+
+Create database dump:
+1. docker exec barometrs-db pg_dump -U emotion_classification -d emotion_classification -f /tmp/emotion_classification.sql
+2. docker cp barometrs-db:/tmp/emotion_classification.sql ./emotion_classification.sql
