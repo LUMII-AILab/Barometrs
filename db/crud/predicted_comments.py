@@ -43,7 +43,7 @@ def get_predicted_comments(db: Session, offset: int = 0, batch_size: int = 100):
     } for result in results]
 
 def get_predicted_comments_max_emotion_chart_data(
-        db: Session,
+        session: Session,
         prediction_type: str,
         start_month: date,
         end_month: date,
@@ -113,7 +113,7 @@ def get_predicted_comments_max_emotion_chart_data(
 
         def get_chart_start():
             """ Get the earliest month in the dataset based on filters. """
-            query = db.query(
+            query = session.query(
                 func.min(group_by_field.label('chart_start'))
             )
 
@@ -124,7 +124,7 @@ def get_predicted_comments_max_emotion_chart_data(
 
         def get_article_and_comment_count_per_period():
             """ Return dictionaries with the count of unique articles and total comments per period. """
-            query = db.query(
+            query = session.query(
                 group_by_field.label('comment_period'),
                 func.count(distinct(models.PredictedComment.article_id)).label('unique_articles'),
                 func.count().label('total_comments')
@@ -132,15 +132,17 @@ def get_predicted_comments_max_emotion_chart_data(
             # Apply common filters, group by the month, and fetch results
             results = apply_common_filters(query).group_by('comment_period').order_by('comment_period').all()
 
-            # Combine results into two dictionaries using a dictionary comprehension
-            article_counts = {result[0]: result[1] for result in results}
-            comment_counts = {result[0]: result[2] for result in results}
+            # Load the results into a DataFrame
+            df_results = pd.DataFrame(results, columns=['comment_period', 'unique_articles', 'total_comments'])
+
+            article_counts = df_results.set_index('comment_period')['unique_articles']
+            comment_counts = df_results.set_index('comment_period')['total_comments']
 
             return article_counts, comment_counts
 
         def get_emotion_data():
             # Retrieve emotion counts per period using a database query
-            query = db.query(
+            query = session.query(
                 group_by_field.label('comment_period'),
                 emotion_field.label('emotion'),
                 func.count().label('emotion_count')
@@ -172,9 +174,9 @@ def get_predicted_comments_max_emotion_chart_data(
             # Calculate emotion percentages per period
             emotion_percent_per_period = emotion_count_per_period.div(emotion_count_per_period.sum(axis=0), axis=1)
 
-            return (emotion_count_per_period.to_dict(),
-                    emotion_percent_per_period.to_dict(),
-                    emotions_grouped_percent_per_period.to_dict())
+            return (emotion_count_per_period,
+                    emotion_percent_per_period,
+                    emotions_grouped_percent_per_period)
 
         chart_start = get_chart_start()
         article_count_per_period, comment_count_per_period = get_article_and_comment_count_per_period()
@@ -189,10 +191,51 @@ def get_predicted_comments_max_emotion_chart_data(
             "emotions_grouped_percent_per_period": emotions_grouped_percent_per_period,
         }
 
+    def combine_responses(response1, response2):
+        chart_start = min(response1['chart_start'], response2['chart_start'])
+
+        # sum article and comment counts
+        article_count_per_period = response1['article_count_per_period'] + response2['article_count_per_period']
+        comment_count_per_period = response1['comment_count_per_period'] + response2['comment_count_per_period']
+
+        # sum emotion counts
+        emotion_count_per_period = response1['emotion_count_per_period'].add(response2['emotion_count_per_period'], fill_value=0)
+
+        # calculate emotion percentages
+        emotion_percent_per_period = emotion_count_per_period.div(emotion_count_per_period.sum(axis=0), axis=1)
+
+        # calculate grouped emotion percentages
+        emotions_grouped_percent_per_period = emotion_count_per_period.sum(axis=1) / emotion_count_per_period.sum().sum()
+
+        return {
+            "chart_start": chart_start,
+            "article_count_per_period": article_count_per_period,
+            "comment_count_per_period": comment_count_per_period,
+            "emotion_count_per_period": emotion_count_per_period,
+            "emotion_percent_per_period": emotion_percent_per_period,
+            "emotions_grouped_percent_per_period": emotions_grouped_percent_per_period,
+        }
+
+    lv_response = prepare_response_per_requested('lv')
+    ru_response = prepare_response_per_requested('ru')
+    total_response = combine_responses(lv_response, ru_response)
+
+    # convert the responses to a dictionary
+    def convert_response_to_dict(response):
+        response['article_count_per_period'] = response['article_count_per_period'].to_dict()
+        response['comment_count_per_period'] = response['comment_count_per_period'].to_dict()
+        response['emotion_count_per_period'] = response['emotion_count_per_period'].to_dict()
+        response['emotion_percent_per_period'] = response['emotion_percent_per_period'].to_dict()
+        return response
+
+    lv_response = convert_response_to_dict(lv_response)
+    ru_response = convert_response_to_dict(ru_response)
+    total_response = convert_response_to_dict(total_response)
+
     response = {
-        "lv": prepare_response_per_requested('lv'),
-        "ru": prepare_response_per_requested('ru'),
-        "total": prepare_response_per_requested('total'),
+        "lv": lv_response,
+        "ru": ru_response,
+        "total": total_response,
     }
 
     return response
