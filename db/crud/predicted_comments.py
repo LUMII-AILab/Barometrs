@@ -100,27 +100,10 @@ def get_predicted_comments_max_emotion_chart_data(
 
         def apply_common_filters(query):
             """ Apply common filters to a query. """
-            if requested_language == 'total':
-                return query.filter(
-                    models.PredictedComment.text_lang.in_(supported_languages),
-                    date_interval_condition
-                )
-
             return query.filter(
                 models.PredictedComment.text_lang == requested_language,
                 date_interval_condition
             )
-
-        def get_chart_start():
-            """ Get the earliest month in the dataset based on filters. """
-            query = session.query(
-                func.min(group_by_field.label('chart_start'))
-            )
-
-            # Apply common filters and fetch the result
-            result = apply_common_filters(query).scalar()
-
-            return result
 
         def get_article_and_comment_count_per_period():
             """ Return dictionaries with the count of unique articles and total comments per period. """
@@ -178,9 +161,12 @@ def get_predicted_comments_max_emotion_chart_data(
                     emotion_percent_per_period,
                     emotions_grouped_percent_per_period)
 
-        chart_start = get_chart_start()
         article_count_per_period, comment_count_per_period = get_article_and_comment_count_per_period()
         emotion_count_per_period, emotion_percent_per_period, emotions_grouped_percent_per_period = get_emotion_data()
+
+        if article_count_per_period.empty:
+            return None
+        chart_start = comment_count_per_period.index[0]
 
         return {
             "chart_start": chart_start,
