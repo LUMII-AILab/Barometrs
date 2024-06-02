@@ -139,42 +139,42 @@ def get_predicted_comments_max_emotion_chart_data(
             return article_counts, comment_counts
 
         def get_emotion_data():
-            # Retrieve emotion counts per month
+            # Retrieve emotion counts per period using a database query
             query = db.query(
                 group_by_field.label('comment_period'),
                 emotion_field.label('emotion'),
                 func.count().label('emotion_count')
             )
-            results = apply_common_filters(query).group_by('comment_period', 'emotion').order_by('comment_period',
-                                                                                                'emotion').all()
 
-            # Prepare data structures using defaultdict for automatic key creation
-            emotion_count_per_period = defaultdict(lambda: defaultdict(int))
-            total_emotions_per_month = defaultdict(int)
+            # Apply common filters, group by necessary fields, and order the results
+            results = (apply_common_filters(query)
+                       .group_by('comment_period', 'emotion')
+                       .order_by('comment_period', 'emotion')
+                       .all()
+            )
 
-            # Aggregate counts and compute total per month in a single pass
-            for row in results:
-                emotion_count_per_period[row.comment_period][row.emotion] = row.emotion_count
-                total_emotions_per_month[row.comment_period] += row.emotion_count
+            # Create a DataFrame from the query results
+            df_results = pd.DataFrame(results, columns=['comment_period', 'emotion', 'emotion_count'])
 
-            # Calculate per-month emotion percentages using comprehension
-            emotion_percent_per_period = {
-                month: {emotion: count / total_emotions_per_month[month] for emotion, count in emotions.items()}
-                for month, emotions in emotion_count_per_period.items()
-            }
+            # Pivot table to transform data for emotion counts by period
+            emotion_count_per_period = df_results.pivot_table(
+                index='emotion',
+                columns='comment_period',
+                values='emotion_count',
+                aggfunc='sum',
+                fill_value=0
+            )
 
-            # Calculate grouped emotion percentages for the entire period
-            total_emotions = sum(total_emotions_per_month.values())
-            all_emotions = functools.reduce(set.union,
-                                            (set(emotions.keys()) for emotions in emotion_count_per_period.values()),
-                                            set())
-            emotions_grouped_percent_per_period = {
-                emotion: sum(emotion_count_per_period[month].get(emotion, 0) for month in
-                             emotion_count_per_period) / total_emotions
-                for emotion in all_emotions
-            }
+            # Calculate the total emotions and grouped percentages
+            total_emotions = df_results['emotion_count'].sum()
+            emotions_grouped_percent_per_period = emotion_count_per_period.sum(axis=1) / total_emotions
 
-            return dict(emotion_count_per_period), emotion_percent_per_period, emotions_grouped_percent_per_period
+            # Calculate emotion percentages per period
+            emotion_percent_per_period = emotion_count_per_period.div(emotion_count_per_period.sum(axis=0), axis=1)
+
+            return (emotion_count_per_period.to_dict(),
+                    emotion_percent_per_period.to_dict(),
+                    emotions_grouped_percent_per_period.to_dict())
 
         chart_start = get_chart_start()
         article_count_per_period, comment_count_per_period = get_article_and_comment_count_per_period()
