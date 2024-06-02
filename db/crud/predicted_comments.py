@@ -1,6 +1,8 @@
+import functools
+from collections import defaultdict
 from datetime import date
 from sqlalchemy.orm import Session
-from sqlalchemy import func, cast, Date, or_, and_
+from sqlalchemy import func, cast, Date, and_, distinct, text
 from db import models
 import pandas as pd
 
@@ -52,108 +54,145 @@ def get_predicted_comments_max_emotion_chart_data(
     if start_month > end_month:
         start_month = end_month
 
-    # Determine the fields based on the prediction type
-    fields = {
-        'timestamp': models.PredictedComment.comment_timestamp.label('timestamp'),
-        'article_id': models.PredictedComment.article_id.label('article_id'),
-        'text_lang': models.PredictedComment.text_lang.label('text_lang'),
-        'emotion': None,
-        'emotion_score': None
-    }
-
-    if prediction_type == 'normal':
-        fields['emotion'] = models.PredictedComment.normal_prediction_emotion.label('emotion')
-        fields['emotion_score'] = models.PredictedComment.normal_prediction_score.label('emotion_score')
-    elif prediction_type == 'ekman':
-        fields['emotion'] = models.PredictedComment.ekman_prediction_emotion.label('emotion')
-        fields['emotion_score'] = models.PredictedComment.ekman_prediction_score.label('emotion_score')
-    else:
-        return None
-
-    query = db.query(
-        fields['timestamp'],
-        fields['article_id'],
-        fields['emotion'],
-        fields['emotion_score'],
-        fields['text_lang']
-    )
-
-    # Beginning of the start month
-    start_date = start_month.replace(day=1)
-
-    # Exclusive end of interval
-    if end_month.month == 12:
-        end_date = end_month.replace(year=end_month.year + 1, month=1, day=1)
-    else:
-        end_date = end_month.replace(month=end_month.month + 1, day=1)
-
-    # Define filter condition to cover the whole interval in one range
-    condition = and_(
-        models.PredictedComment.comment_timestamp >= start_date,
-        models.PredictedComment.comment_timestamp < end_date
-    )
-
-    # Apply the filters to the query
-    results = query.filter(
-        models.PredictedComment.text_lang.in_(supported_languages),
-        condition
-    ).all()
-
-    if not results:
-        return None
-
-    df = pd.DataFrame(results, columns=['timestamp', 'article_id', 'emotion', 'emotion_score', 'text_lang'])
-
-    # Convert 'timestamp' from string or other types to datetime
-    df['timestamp'] = pd.to_datetime(df['timestamp'])
-
-    df['comment_month'] = df['timestamp'].dt.strftime('%Y-%m')
-    # Group by week, then convert week to string format 'YYYY-MM-DD', where the day is the first day of the week
-    df['comment_week'] = df['timestamp'].dt.to_period('W').dt.start_time.dt.strftime('%Y-%m-%d')
-    df['comment_date'] = df['timestamp'].dt.strftime('%Y-%m-%d')
-
-    # Filter by language ('lv' or 'ru')
-    def prepare_response_per_requested(df_scoped, requested_language):
-        if requested_language in ['lv', 'ru']:
-            df_scoped = df_scoped[df_scoped['text_lang'] == requested_language]
-
-        if group_by == 'month':
-            chart_start = df_scoped['comment_month'].min()
-            article_count_per_period = df_scoped.groupby('comment_month')['article_id'].nunique()
-            comment_count_per_period = df_scoped['comment_month'].value_counts().sort_index()
-            emotion_count_per_period = df_scoped.groupby(['comment_month', 'emotion']).size().unstack(fill_value=0)
-            emotion_percent_per_period = emotion_count_per_period.divide(emotion_count_per_period.sum(axis=1), axis=0)
-            emotions_grouped_percent_per_period = emotion_count_per_period.sum() / len(df_scoped)
-        elif group_by == 'week':
-            chart_start = df_scoped['comment_week'].min()
-            article_count_per_period = df_scoped.groupby('comment_week')['article_id'].nunique()
-            comment_count_per_period = df_scoped['comment_week'].value_counts().sort_index()
-            emotion_count_per_period = df_scoped.groupby(['comment_week', 'emotion']).size().unstack(fill_value=0)
-            emotion_percent_per_period = emotion_count_per_period.divide(emotion_count_per_period.sum(axis=1), axis=0)
-            emotions_grouped_percent_per_period = emotion_count_per_period.sum() / len(df_scoped)
-        elif group_by == 'day':
-            chart_start = df_scoped['comment_date'].min()
-            article_count_per_period = df_scoped.groupby('comment_date')['article_id'].nunique()
-            comment_count_per_period = df_scoped['comment_date'].value_counts().sort_index()
-            emotion_count_per_period = df_scoped.groupby(['comment_date', 'emotion']).size().unstack(fill_value=0)
-            emotion_percent_per_period = emotion_count_per_period.divide(emotion_count_per_period.sum(axis=1), axis=0)
-            emotions_grouped_percent_per_period = emotion_count_per_period.sum() / len(df_scoped)
+    def prepare_response_per_requested(requested_language):
+        # Determine the fields based on the prediction type
+        if prediction_type == 'normal':
+            emotion_field = models.PredictedComment.normal_prediction_emotion.label('emotion')
+        elif prediction_type == 'ekman':
+            emotion_field = models.PredictedComment.ekman_prediction_emotion.label('emotion')
         else:
             return None
 
+        # Beginning of the start month
+        start_date = start_month.replace(day=1)
+
+        # Exclusive end of interval
+        if end_month.month == 12:
+            end_date = end_month.replace(year=end_month.year + 1, month=1, day=1)
+        else:
+            end_date = end_month.replace(month=end_month.month + 1, day=1)
+
+        # Define filter condition to cover the whole interval in one range
+        date_interval_condition = and_(
+            models.PredictedComment.comment_timestamp >= start_date,
+            models.PredictedComment.comment_timestamp < end_date
+        )
+
+        valid_groupings = {
+            'month': 'YYYY-MM',
+            'week': 'YYYY-MM-DD',
+            'day': 'YYYY-MM-DD',
+        }
+
+        timestamp_format = valid_groupings[group_by]
+        if group_by == 'week':
+            group_by_field = func.to_char(
+                func.date_trunc('week', models.PredictedComment.comment_timestamp) +
+                text("interval '1 day'") -
+                text("interval '1 week'"),
+                timestamp_format
+            )
+        else:
+            group_by_field = func.to_char(
+                func.date_trunc(group_by, models.PredictedComment.comment_timestamp),
+                timestamp_format
+            )
+
+        def apply_common_filters(query):
+            """ Apply common filters to a query. """
+            if requested_language == 'total':
+                return query.filter(
+                    models.PredictedComment.text_lang.in_(supported_languages),
+                    date_interval_condition
+                )
+
+            return query.filter(
+                models.PredictedComment.text_lang == requested_language,
+                date_interval_condition
+            )
+
+        def get_chart_start():
+            """ Get the earliest month in the dataset based on filters. """
+            query = db.query(
+                func.min(group_by_field.label('chart_start'))
+            )
+
+            # Apply common filters and fetch the result
+            result = apply_common_filters(query).scalar()
+
+            return result
+
+        def get_article_and_comment_count_per_period():
+            """ Return dictionaries with the count of unique articles and total comments per period. """
+            query = db.query(
+                group_by_field.label('comment_period'),
+                func.count(distinct(models.PredictedComment.article_id)).label('unique_articles'),
+                func.count().label('total_comments')
+            )
+            # Apply common filters, group by the month, and fetch results
+            results = apply_common_filters(query).group_by('comment_period').order_by('comment_period').all()
+
+            # Combine results into two dictionaries using a dictionary comprehension
+            article_counts = {result[0]: result[1] for result in results}
+            comment_counts = {result[0]: result[2] for result in results}
+
+            return article_counts, comment_counts
+
+        def get_emotion_data():
+            # Retrieve emotion counts per month
+            query = db.query(
+                group_by_field.label('comment_period'),
+                emotion_field.label('emotion'),
+                func.count().label('emotion_count')
+            )
+            results = apply_common_filters(query).group_by('comment_period', 'emotion').order_by('comment_period',
+                                                                                                'emotion').all()
+
+            # Prepare data structures using defaultdict for automatic key creation
+            emotion_count_per_period = defaultdict(lambda: defaultdict(int))
+            total_emotions_per_month = defaultdict(int)
+
+            # Aggregate counts and compute total per month in a single pass
+            for row in results:
+                emotion_count_per_period[row.comment_period][row.emotion] = row.emotion_count
+                total_emotions_per_month[row.comment_period] += row.emotion_count
+
+            # Calculate per-month emotion percentages using comprehension
+            emotion_percent_per_period = {
+                month: {emotion: count / total_emotions_per_month[month] for emotion, count in emotions.items()}
+                for month, emotions in emotion_count_per_period.items()
+            }
+
+            # Calculate grouped emotion percentages for the entire period
+            total_emotions = sum(total_emotions_per_month.values())
+            all_emotions = functools.reduce(set.union,
+                                            (set(emotions.keys()) for emotions in emotion_count_per_period.values()),
+                                            set())
+            emotions_grouped_percent_per_period = {
+                emotion: sum(emotion_count_per_period[month].get(emotion, 0) for month in
+                             emotion_count_per_period) / total_emotions
+                for emotion in all_emotions
+            }
+
+            return dict(emotion_count_per_period), emotion_percent_per_period, emotions_grouped_percent_per_period
+
+        chart_start = get_chart_start()
+        article_count_per_period, comment_count_per_period = get_article_and_comment_count_per_period()
+        emotion_count_per_period, emotion_percent_per_period, emotions_grouped_percent_per_period = get_emotion_data()
+
         return {
             "chart_start": chart_start,
-            "article_count_per_period": article_count_per_period.to_dict(),
-            "comment_count_per_period": comment_count_per_period.to_dict(),
-            "emotion_count_per_period": emotion_count_per_period.to_dict(),
-            "emotion_percent_per_period": emotion_percent_per_period.to_dict(),
-            "emotions_grouped_percent_per_period": emotions_grouped_percent_per_period.to_dict(),
+            "article_count_per_period": article_count_per_period,
+            "comment_count_per_period": comment_count_per_period,
+            "emotion_count_per_period": emotion_count_per_period,
+            "emotion_percent_per_period": emotion_percent_per_period,
+            "emotions_grouped_percent_per_period": emotions_grouped_percent_per_period,
         }
 
     response = {
-        "lv": prepare_response_per_requested(df, 'lv'),
-        "ru": prepare_response_per_requested(df, 'ru'),
-        "total": prepare_response_per_requested(df, 'total')
+        "lv": prepare_response_per_requested('lv'),
+        "ru": prepare_response_per_requested('ru'),
+        "total": prepare_response_per_requested('total'),
     }
 
     return response

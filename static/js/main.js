@@ -134,7 +134,6 @@ $(document).ready(function() {
                 showticklabels: true,
                 tickangle: 'auto',
                 tick0: start,
-                dtick: 604800000, // 7 days in milliseconds
             };
         } else if (groupBy === 'day') {
             config = {
@@ -150,9 +149,28 @@ $(document).ready(function() {
 
     function getEmotionTraces(data) {
         const traces = [];
-        Object.keys(data).forEach(emotion => {
-            const x = Object.keys(data[emotion]);
-            const y = Object.values(data[emotion]);
+
+        // Iterate over all periods to get all emotions
+        const allEmotions = {};
+        Object.keys(data).forEach(month => {
+            const emotions = data[month];
+            Object.keys(emotions).forEach(emotion => {
+                allEmotions[emotion] = true;
+            });
+        });
+
+        // Create a trace for each emotion
+        Object.keys(allEmotions).forEach(emotion => {
+            const x = [];
+            const y = [];
+
+            // Collect data for each period
+            Object.keys(data).forEach(period => {
+                x.push(period);
+                y.push(data[period][emotion] || 0); // Use zero if no data exists for this emotion in the month
+            });
+
+            // Push a new trace for the current emotion
             traces.push({
                 x: x,
                 y: y,
@@ -160,7 +178,7 @@ $(document).ready(function() {
                 mode: 'lines+markers',
                 name: emotion,
                 line: {
-                    color: colorMap[emotion]
+                    color: colorMap[emotion] // Use a predefined color for each emotion
                 }
             });
         });
