@@ -16,7 +16,9 @@ from core import load_model
 # Database connection setup
 new_delfi_data = data_path('delfi-new')
 old_delfi_data = data_path('delfi-old/delfi')
-years_to_process = ['2023', '2024']
+apollo_data = data_path('apollo')
+tvnet_data = data_path('tvnet')
+years_to_process = ['2020', '2021', '2022', '2023', '2024']
 
 # Session placeholder
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=database.engine)
@@ -190,5 +192,7 @@ if __name__ == '__main__':
     start_time = time.time()
     process_directory(new_delfi_data)
     process_directory(old_delfi_data)
+    process_directory(tvnet_data)
+    process_directory(apollo_data)
     end_time = time.time()
     print(f"Processing new data took {end_time - start_time} seconds")
