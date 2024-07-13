@@ -27,24 +27,25 @@ def download_fasttext_model(url, cache_dir):
     else:
         print(f"FastText model already exists at {cache_dir}")
 
-model_names = [
-    # LV-BERT models
-    "AiLab-IMCS-UL/lvbert",
-    "SkyWater21/lvbert-lv-go-emotions",
-    "SkyWater21/lvbert-lv-go-emotions-ekman",
+if __name__ == '__main__':
+    model_names = [
+        # LV-BERT models
+        "AiLab-IMCS-UL/lvbert",
+        "SkyWater21/lvbert-lv-go-emotions",
+        "SkyWater21/lvbert-lv-go-emotions-ekman",
 
-    # RuBERT models
-    "DeepPavlov/rubert-base-cased",
-    "seara/rubert-base-cased-ru-go-emotions",
-    "SkyWater21/rubert-base-cased-ru-go-emotions-ekman",
-]
+        # RuBERT models
+        "DeepPavlov/rubert-base-cased",
+        "seara/rubert-base-cased-ru-go-emotions",
+        "SkyWater21/rubert-base-cased-ru-go-emotions-ekman",
+    ]
 
-# Download hugingface models
-for model_name in model_names:
-    download_huggingface_model(model_name, cache_dir="./models")
+    # Download hugingface models
+    for model_name in model_names:
+        download_huggingface_model(model_name, cache_dir="./models")
 
-# Download FastText lid.176.bin model
-fasttext_url = "https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin"
-download_fasttext_model(fasttext_url, cache_dir="./models")
+    # Download FastText lid.176.bin model
+    fasttext_url = "https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin"
+    download_fasttext_model(fasttext_url, cache_dir="./models")
 
-print("All models are downloaded and cached.")
+    print("All models are downloaded and cached.")
