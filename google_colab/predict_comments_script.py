@@ -120,7 +120,7 @@ if __name__ == '__main__':
     download_models()
 
     # Create session
-    DATABASE_URL = "postgresql://emotion_classification:password@db:5432/emotion_classification"
+    DATABASE_URL = "postgresql://emotion_classification:password@127.0.0.1:5432/emotion_classification"
 
     print(f"Connecting to database at {DATABASE_URL}")
 
