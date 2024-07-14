@@ -63,10 +63,6 @@ def process_comments(batch_size=100):
     # Paginate through raw_comments
     last_id = 0
     while True:
-        # TODO: for testing
-        if processed_comment_count >= 100:
-            break
-
         start_time = time.time()
         raw_comments = crud_utils.get_raw_unpredicted_comments(session, last_id, batch_size)
         if not raw_comments:
