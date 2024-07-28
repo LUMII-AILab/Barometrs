@@ -1,5 +1,3 @@
-import functools
-from collections import defaultdict
 from datetime import date
 from sqlalchemy.orm import Session
 from sqlalchemy import func, cast, Date, and_, distinct, text
@@ -7,7 +5,7 @@ from db import models
 import pandas as pd
 
 supported_languages = ['lv', 'ru']
-min_date = date(2023, 1, 1)
+min_date = date(2020, 1, 1)
 
 def create_predicted_comment(db: Session, predicted_comment: models.PredictedComment):
     db.add(predicted_comment)
