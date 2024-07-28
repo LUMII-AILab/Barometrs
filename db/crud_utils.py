@@ -66,18 +66,28 @@ def get_raw_lv_comments(db: Session, offset: int = 0, batch_size: int = 100):
     return db.query(models.RawComment).filter(models.RawComment.comment_lang == 'lv').offset(offset).limit(batch_size).all()
 
 def get_unprecited_comment_count(db: Session):
+    article_exists_subquery = db.query(models.RawArticle.article_id).filter(
+        models.RawArticle.article_id == models.RawComment.article_id
+    ).exists()
+
     return (db.query(models.RawComment)
     .filter(
         or_(models.RawComment.comment_lang == 'lv', models.RawComment.comment_lang == 'ru'),
-        models.RawComment.predicted_comments == None
+        models.RawComment.predicted_comments == None,
+        article_exists_subquery
     ).count())
 
-def get_raw_unpredicted_comments(db: Session, last_id: int = 0, batch_size: int = 100):
+def get_raw_unpredicted_comments_by_batch(db: Session, last_id: int = 0, batch_size: int = 100):
+    article_exists_subquery = db.query(models.RawArticle.article_id).filter(
+        models.RawArticle.article_id == models.RawComment.article_id
+    ).exists()
+
     # Filter by language ('lv' or 'ru') and predicted_comments is None
     return db.query(models.RawComment).filter(
         or_(models.RawComment.comment_lang == 'lv', models.RawComment.comment_lang == 'ru'),
         models.RawComment.predicted_comments == None,
-        models.RawComment.id > last_id
+        models.RawComment.id > last_id,
+        article_exists_subquery
     ).order_by(models.RawComment.id).limit(batch_size).all()
 
 def create_raw_comment(db: Session, raw_comment: models.RawComment):

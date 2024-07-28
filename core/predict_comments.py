@@ -1,7 +1,6 @@
 import time
 from sqlalchemy.orm import sessionmaker
-import database
-from db import models, crud_utils
+from db import models, crud_utils, database
 from db.crud import predicted_comments as pc_crud
 from core import load_model
 
@@ -45,7 +44,7 @@ def process_comments(batch_size=100):
     last_id = 0
     while True:
         start_time = time.time()
-        raw_comments = crud_utils.get_raw_unpredicted_comments(session, last_id, batch_size)
+        raw_comments = crud_utils.get_raw_unpredicted_comments_by_batch(session, last_id, batch_size)
         if not raw_comments:
             break
 
