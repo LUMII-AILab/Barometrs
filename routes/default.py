@@ -3,8 +3,7 @@ from fastapi import APIRouter, Depends, Request, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from starlette.templating import Jinja2Templates
-from db import crud_utils
-from db import database
+from db import crud_utils, database
 from db.crud import predicted_comments as pc_crud
 
 router = APIRouter()

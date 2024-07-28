@@ -9,6 +9,7 @@ def create_tables():
     Base.metadata.create_all(engine)
 
 if __name__ == "__main__":
-    register_models()
-    drop_tables()
-    create_tables()
+    pass
+    # register_models()
+    # drop_tables()
+    # create_tables()
