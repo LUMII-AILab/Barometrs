@@ -1,5 +1,5 @@
 # Use the PyTorch base image
-FROM pytorch/pytorch:2.2.1-cuda12.1-cudnn8-runtime
+FROM pytorch/pytorch:2.3.1-cuda12.1-cudnn8-runtime
 
 # Install SSH server
 RUN apt-get update && apt-get install -y openssh-server

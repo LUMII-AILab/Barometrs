@@ -18,3 +18,9 @@ Create database dump:
 Create database dump in directory-format:
 1. docker exec barometrs-db pg_dump -U emotion_classification -d emotion_classification -Fc -Z 9 -f /tmp/emotion_classification.dump
 2. docker cp barometrs-db:/tmp/emotion_classification.dump ./emotion_classification.dump
+
+Import database from volume:
+Wipe out database:
+1. docker exec -u root barometrs-db bash -c "rm -rf /var/lib/postgresql/data/*"
+Copy data:
+2. docker cp path_to/var/lib/postgresql/data/. barometrs-db:/var/lib/postgresql/data

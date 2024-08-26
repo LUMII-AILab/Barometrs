@@ -1,6 +1,7 @@
 data/
 models/
 .venv/
+venv/
 .env
 
 # ignore all .idea
