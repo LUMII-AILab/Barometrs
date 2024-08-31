@@ -2,7 +2,7 @@
 FROM pytorch/pytorch:2.3.1-cuda12.1-cudnn8-runtime
 
 # Install SSH server and other necessary packages
-RUN apt-get update && apt-get install -y openssh-server build-essential libpython3-dev
+RUN apt-get update && apt-get install -y openssh-server build-essential libpython3-dev git
 RUN mkdir /var/run/sshd
 
 # Remove root password
@@ -30,9 +30,10 @@ RUN echo "DATABASE_URL=${DATABASE_URL}" >> /etc/environment
 # Make conda available without running source command
 RUN echo "source /opt/conda/etc/profile.d/conda.sh" >> /root/.bashrc
 
-# Set up automatic cd to /app and activate conda on login
+# Set up automatic cd to /app, activate conda, and set PYTHONPATH on login
 RUN echo "cd /app" >> /root/.bashrc
 RUN echo "conda activate" >> /root/.bashrc
+RUN echo "export PYTHONPATH=/app:\$PYTHONPATH" >> /root/.bashrc
 
 # Start debugging server via SSH at debug_server.py, default port 8001
 CMD service ssh start && sleep infinity
