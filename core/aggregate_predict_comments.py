@@ -34,13 +34,12 @@ def aggregate_comments():
 
     # Populate aggregation by day
     step_date = aggregation_start_date
-    while step_date <= aggregation_end_date:
-        for comment in read.get_predicted_comments_by_day(session, date=step_date):
-            print(comment)
-            processed_comment_count += 1
 
-        print(f'Processed {processed_comment_count} comments for {step_date}')
-        step_date = get_next_aggregation_date(step_date, aggregation_step='day')
+    # TODO: implement someday
+    # aggregated_data_per_day = read.aggregate_predicted_comments(session, prediction_type='normal', start_month=aggregation_start_date, end_month=aggregation_end_date, group_by='day')
+    # for data in aggregated_data_per_day:
+    #     print(data)
+    #     processed_comment_count += data['count']
 
     print(f'Processed {processed_comment_count} comments')
 
