@@ -2,7 +2,7 @@ from datetime import timedelta
 import time
 from sqlalchemy.orm import sessionmaker
 from db import models, database
-from db.crud.predicted_comments import read
+from db.crud import read_predicted_comments
 from sqlalchemy import func
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=database.engine)
@@ -12,7 +12,7 @@ session = SessionLocal()
 # But we will keep it simple and run complete re-agregation when new comments pop-up
 def aggregate_comments():
     # Get total number of predicted comments
-    predicted_comments_count = read.get_predicted_comment_count(session)
+    predicted_comments_count = read_predicted_comments.get_predicted_comment_count(session)
     print(f'Total predicted comment count: {predicted_comments_count}')
     processed_comment_count = 0
 

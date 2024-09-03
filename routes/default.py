@@ -5,9 +5,12 @@ from sqlalchemy.orm import Session
 from starlette.templating import Jinja2Templates
 from db import crud_utils, database
 from db.crud import predicted_comments as pc_crud
+import redis
+import pickle
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
+r = redis.Redis(host='redis', port=6379, db=0)
 
 @router.get("/")
 def read_root(request: Request, session: Session = Depends(database.get_session)):
@@ -36,6 +39,12 @@ def read_predicted_comments_max_emotion_charts(
     filter: PredictedCommentsFilter,
     session: Session = Depends(database.get_session)
 ):
+    cache_key = f"chart_data_{filter.predictionType}_{filter.startMonth}_{filter.endMonth}_{filter.groupBy}"
+    result = r.get(cache_key)
+    
+    if result:
+        return pickle.loads(result)
+
     start_month = datetime.strptime(filter.startMonth, "%Y-%m").date()
     end_month = datetime.strptime(filter.endMonth, "%Y-%m").date()
 
@@ -46,6 +55,8 @@ def read_predicted_comments_max_emotion_charts(
         end_month,
         filter.groupBy
     )
+
+    r.set(cache_key, pickle.dumps(predicted_comments))
 
     return predicted_comments
 

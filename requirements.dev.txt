@@ -11,3 +11,4 @@ torch
 sentence_transformers
 keybert
 hdbscan
+redis
