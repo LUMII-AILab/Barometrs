@@ -31,6 +31,9 @@ services:
 
   redis:
     image: redis:alpine
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
     container_name: barometrs-redis
     ports:
       - "6379:6379"
