@@ -33,6 +33,7 @@ if __name__ == '__main__':
         "AiLab-IMCS-UL/lvbert",
         "SkyWater21/lvbert-lv-go-emotions",
         "SkyWater21/lvbert-lv-go-emotions-ekman",
+        "SkyWater21/lvbert-lv-emotions-ekman",
 
         # RuBERT models
         "DeepPavlov/rubert-base-cased",

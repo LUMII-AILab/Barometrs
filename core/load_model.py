@@ -17,6 +17,7 @@ def get_model_name(short_name: str):
         'DeepPavlov/rubert-base-cased',
         'seara/rubert-base-cased-ru-go-emotions',
         'SkyWater21/rubert-base-cased-ru-go-emotions-ekman'
+        'SkyWater21/lvbert-lv-emotions-ekman',
     ]:
         return short_name
 
@@ -26,6 +27,8 @@ def get_model_name(short_name: str):
         return 'SkyWater21/lvbert-lv-go-emotions'
     elif short_name == 'lvbert-lv-go-emotions-ekman':
         return 'SkyWater21/lvbert-lv-go-emotions-ekman'
+    elif short_name == 'lvbert-lv-emotions-ekman':
+        return 'SkyWater21/lvbert-lv-emotions-ekman'
     elif short_name == 'rubert-base-cased':
         return 'DeepPavlov/rubert-base-cased'
     elif short_name == 'rubert-base-cased-ru-go-emotions':

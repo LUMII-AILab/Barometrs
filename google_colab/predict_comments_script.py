@@ -8,9 +8,12 @@ from download_models import download_huggingface_model, download_fasttext_model
 
 def download_models():
     model_names = [
-        # LV-BERT models
+        # LV-BERT models fine-tuned on GoEmotions
         "SkyWater21/lvbert-lv-go-emotions",
         "SkyWater21/lvbert-lv-go-emotions-ekman",
+
+        # LV-BERT models fine-tuned on GoEmotions + Twitter
+        "SkyWater21/lvbert-lv-emotions-ekman",
 
         # RuBERT models
         "seara/rubert-base-cased-ru-go-emotions",
