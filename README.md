@@ -23,7 +23,11 @@
    ```
    docker exec -it web bash -c "python3 /app/download_models.py"
    ```
-6. TBD
+6. Credentials to connect to PostgreSQL are in `.env` file.
+7. Run `init_db.py` to create tables:
+   ```
+   docker exec -it web bash -c "python3 /app/init_db.py"
+   ```
 
 # Database export
 Create database dump in plain-text format:

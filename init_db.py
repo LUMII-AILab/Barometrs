@@ -10,6 +10,8 @@ def create_tables():
 
 if __name__ == "__main__":
     pass
-    # register_models()
+    register_models()
+    create_tables()
+
+    # Uncomment the following line to drop all tables
     # drop_tables()
-    # create_tables()
