@@ -16,7 +16,7 @@ def get_model_name(short_name: str):
         'SkyWater21/lvbert-lv-go-emotions-ekman',
         'DeepPavlov/rubert-base-cased',
         'seara/rubert-base-cased-ru-go-emotions',
-        'SkyWater21/rubert-base-cased-ru-go-emotions-ekman'
+        'SkyWater21/rubert-base-cased-ru-go-emotions-ekman',
         'SkyWater21/lvbert-lv-emotions-ekman',
     ]:
         return short_name
