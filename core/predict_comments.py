@@ -20,10 +20,12 @@ def process_predictions(predictions):
     return emotion_dict, max_emotion, max_emotion_score
 
 def add_predictions(predicted_comment, normal_model, ekman_model, text):
-    normal_prediction_result = normal_model(text)
-    (predicted_comment.normal_prediction_json,
-     predicted_comment.normal_prediction_emotion,
-     predicted_comment.normal_prediction_score) = process_predictions(normal_prediction_result)
+    # Process prediction if model is provided
+    if normal_model is not None:
+        normal_prediction_result = normal_model(text)
+        (predicted_comment.normal_prediction_json,
+         predicted_comment.normal_prediction_emotion,
+         predicted_comment.normal_prediction_score) = process_predictions(normal_prediction_result)
 
     ekman_prediction_result = ekman_model(text)
     (predicted_comment.ekman_prediction_json,
@@ -39,9 +41,13 @@ def process_comments(batch_size=100):
     print(f'Total comment count: {unpredicted_comments_count}')
     processed_comment_count = 0
 
-    lvbert_lv_go_emotion_pipeline = load_model.get_pipeline_for_model('lvbert-lv-go-emotions')
-    lvbert_lv_go_emotion_ekman_pipeline = load_model.get_pipeline_for_model('lvbert-lv-go-emotions-ekman')
-    rubert_ru_go_emotion_pipeline = load_model.get_pipeline_for_model('rubert-base-cased-ru-go-emotions')
+    # 6 emotions based on Ekman will be supported from now on
+    # uncomment the lines below to use the old models
+
+    # lvbert_lv_go_emotion_pipeline = load_model.get_pipeline_for_model('lvbert-lv-go-emotions')
+    # rubert_ru_go_emotion_pipeline = load_model.get_pipeline_for_model('rubert-base-cased-ru-go-emotions')
+
+    lvbert_lv_go_emotion_ekman_pipeline = load_model.get_pipeline_for_model('lvbert-lv-emotions-ekman')
     rubert_ru_go_emotion_ekman_pipeline = load_model.get_pipeline_for_model('rubert-base-cased-ru-go-emotions-ekman')
 
     # Paginate through raw_comments
@@ -70,12 +76,12 @@ def process_comments(batch_size=100):
 
             if comment_lang == 'lv':
                 predicted_comment = add_predictions(predicted_comment,
-                                                    lvbert_lv_go_emotion_pipeline,
+                                                    None,
                                                     lvbert_lv_go_emotion_ekman_pipeline,
                                                     comment_text)
             elif comment_lang == 'ru':
                 predicted_comment = add_predictions(predicted_comment,
-                                                    rubert_ru_go_emotion_pipeline,
+                                                    None,
                                                     rubert_ru_go_emotion_ekman_pipeline,
                                                     comment_text)
             else:
