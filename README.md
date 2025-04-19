@@ -28,6 +28,16 @@
    ```
    docker exec -it web bash -c "python3 /app/init_db.py"
    ```
+8. Extract the raw data (comments) inside `data` folder. See the expected paths per news outline inside `core/data_import.py`
+<br> As of now, the following folders are expected:
+   - Delfi - `data/delfi/`
+   - Delfi-new - `data/delfi-new/`
+   - Apollo - `data/apollo/`
+   - TVNET - `data/tvnet/`
+9. Run `data_import.py` to import the data into the database:
+   ```
+   docker exec -it web bash -c "python3 /app/core/data_import.py"
+   ```
 
 # Database export
 Create database dump in plain-text format:

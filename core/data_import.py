@@ -7,15 +7,15 @@ import fasttext
 import pandas as pd
 from sqlalchemy.orm import sessionmaker
 
-import database
-from db import crud_utils
+# import database
+from db import crud_utils, database
 from path_config import data_path, models_path
 import torch
 from core import load_model
 
 # Database connection setup
 new_delfi_data = data_path('delfi-new')
-old_delfi_data = data_path('delfi-old/delfi')
+old_delfi_data = data_path('delfi')
 apollo_data = data_path('apollo')
 tvnet_data = data_path('tvnet')
 years_to_process = ['2020', '2021', '2022', '2023', '2024']
