@@ -12,3 +12,6 @@ sentence_transformers
 keybert
 hdbscan
 redis
+matplotlib
+plotly
+jupyter

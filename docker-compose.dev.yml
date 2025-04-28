@@ -17,6 +17,7 @@ services:
     ports:
       - "2222:22"    # SSH port mapped to 2222 on host
       - "8001:8001"  # FastAPI debug port
+      - "8888:8888"  # Jupyter Notebook port
     deploy:
       resources:
         reservations:

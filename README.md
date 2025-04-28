@@ -39,6 +39,18 @@
    docker exec -it web bash -c "python3 /app/core/data_import.py"
    ```
 
+# Jupyter Notebook
+1. Run `docker-compose -f docker-compose.dev.yml up --build -d` to build and start development containers.
+2. Enter the `web` container:
+   ```
+   docker exec -it web bash
+   ```
+3. Run Jupyter Notebook:
+   ```
+   jupyter notebook --ip 0.0.0.0 --port 8888 --no-browser --allow-root --NotebookApp.token='' --NotebookApp.password=''
+   ```
+4. Open the browser and go to `localhost:8888` to access Jupyter Notebook.
+
 # Database export
 Create database dump in plain-text format:
 ```
