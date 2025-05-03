@@ -1,4 +1,4 @@
-# Setup for development build
+# Setup for development build within Docker containers
 1. Create `.env` file according to `.env.example`.
 2. Run `docker-compose -f docker-compose.dev.yml up --build -d` to build and start development containers.
 3. (optional) [Pycharm] Set up remote interpreter:
@@ -34,22 +34,14 @@
    - Delfi-new - `data/delfi-new/`
    - Apollo - `data/apollo/`
    - TVNET - `data/tvnet/`
-9. Run `data_import.py` to import the data into the database:
+9. Run `data_import.py` to import articles and comments into the database:
    ```
    docker exec -it web bash -c "python3 /app/core/data_import.py"
    ```
-
-# Jupyter Notebook
-1. Run `docker-compose -f docker-compose.dev.yml up --build -d` to build and start development containers.
-2. Enter the `web` container:
+10. Run `predict_comments.py` to predict emotions for the imported comments:
    ```
-   docker exec -it web bash
+   docker exec -it web bash -c "python3 /app/core/predict_comments.py"
    ```
-3. Run Jupyter Notebook:
-   ```
-   jupyter notebook --ip 0.0.0.0 --port 8888 --no-browser --allow-root --NotebookApp.token='' --NotebookApp.password=''
-   ```
-4. Open the browser and go to `localhost:8888` to access Jupyter Notebook.
 
 # Database export
 Create database dump in plain-text format:
