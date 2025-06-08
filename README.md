@@ -1,7 +1,7 @@
 # Setup for development build within Docker containers
 1. Create `.env` file according to `.env.example`.
 2. Run `docker-compose -f docker-compose.dev.yml up --build -d` to build and start development containers.
-3. (optional) [Pycharm] Set up remote interpreter:
+3. (optional) [Pycharm] Set up remote interpreter (not recommended, use local interpreter instead):
    - Go to `File -> Settings -> Project -> Python Interpreter`.
    - Click `Add interpreter -> On SSH...`.
    - Fill in the fields (double-check the values in `docker-compose.dev.yml`):
@@ -28,7 +28,7 @@
    ```
    docker exec -it web bash -c "python3 /app/init_db.py"
    ```
-8. Extract the raw data (comments) inside `data` folder. See the expected paths per news outline inside `core/data_import.py`
+8. Extract the raw data (comments) inside `data` folder. See the expected paths per news outlet inside `core/data_import.py`
 <br> As of now, the following folders are expected:
    - Delfi - `data/delfi/`
    - Delfi-new - `data/delfi-new/`

@@ -35,5 +35,6 @@ RUN echo "cd /app" >> /root/.bashrc
 RUN echo "conda activate" >> /root/.bashrc
 RUN echo "export PYTHONPATH=/app:\$PYTHONPATH" >> /root/.bashrc
 
+# Server is not running by default
 # Start debugging server via SSH at debug_server.py, default port 8001
 CMD service ssh start && sleep infinity
