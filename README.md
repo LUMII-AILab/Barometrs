@@ -42,6 +42,10 @@
    ```
    docker exec -it web bash -c "python3 /app/core/predict_comments.py"
    ```
+11. Run `extract_keywords_by_day.py` to extract keywords:
+   ```
+   docker exec -it web bash -c "python3 /app/core/extract_keywords_by_day.py"
+   ```
 
 # Database export
 Create database dump in plain-text format:

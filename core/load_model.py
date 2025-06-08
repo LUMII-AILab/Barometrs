@@ -87,7 +87,7 @@ def get_keybert_model_by_language_and_prediction_type(language: str, prediction_
     if language == 'lv' and prediction_type == 'normal':
         return get_keybert_model('lvbert-lv-go-emotions')
     elif language == 'lv' and prediction_type == 'ekman':
-        return get_keybert_model('lvbert-lv-go-emotions-ekman')
+        return get_keybert_model('lvbert-lv-emotions-ekman')
     elif language == 'ru' and prediction_type == 'normal':
         return get_keybert_model('rubert-base-cased-ru-go-emotions')
     elif language == 'ru' and prediction_type == 'ekman':
