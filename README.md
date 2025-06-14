@@ -50,8 +50,8 @@
 # Database export
 Create database dump in plain-text format:
 ```
-docker exec barometrs-db pg_dump -U emotion_classification -d emotion_classification -f /tmp/emotion_classification.sql
-docker cp barometrs-db:/tmp/emotion_classification.sql ./emotion_classification.sql
+docker exec db pg_dump -U barometrs -d barometrs -f /tmp/barometrs.sql
+docker cp db:/tmp/barometrs.sql ./barometrs.sql
 ```
 
 Create database dump in directory-format:

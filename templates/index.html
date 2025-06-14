@@ -35,9 +35,9 @@
 
         {# Dropdown with prediction type #}
         <label for="predictionType">Prediction Type:</label>
-        <select id="predictionType" name="predictionType">
+        <select id="predictionType" name="predictionType" disabled>
             <option value="ekman" selected>Go Emotions Ekman (6 base emotions + neutral)</option>
-            <option value="normal">Go Emotions (26 base emotions + neutral)</option>
+{#            <option value="normal">Go Emotions (26 base emotions + neutral)</option>#}
         </select>
         <input type="text" name="currentPredictionType" value="ekman" style="display: none;">
         <input type="date" name="requestDate" style="display: none;">
