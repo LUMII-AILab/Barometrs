@@ -13,3 +13,6 @@ __pycache__/
 
 # ignore notebook checkpoints
 *.ipynb_checkpoints/
+
+# ignore database dumps
+/db_dumps/*
