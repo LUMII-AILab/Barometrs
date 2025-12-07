@@ -1,35 +1,14 @@
 // Plot charts
 $(document).ready(function() {
     const colorMap = {
-        "admiration": "#ffa500",  // Orange, a warm tone reflecting positive regard
-        "amusement": "#ffec00",  // Bright yellow, depicting light-heartedness
-        "anger": "#d62728",      // Bright red, common for intensity and aggression
-        "annoyance": "#cd5c5c",  // Darker, more muted red to show mild irritation
-        "approval": "#32cd32",   // Green, indicating go-ahead or agreement
-        "caring": "#ffb6c1",     // Soft pink, evoking warmth and nurturing
-        "confusion": "#f4a460",  // Pale orange, suggesting uncertainty
-        "curiosity": "#8a2be2",  // Vivid purple, for intrigue and mystery
-        "desire": "#ff4500",     // Deep orange, for passion and craving
-        "disappointment": "#778899",  // Cool grey, for muted or subdued feelings
-        "disapproval": "#808080",     // Grey, neutral and reserved
-        "disgust": "#8fbc8f",         // Dull green, associated with sickness
-        "embarrassment": "#ff6347",   // Tomato red, reflecting flushed cheeks
-        "excitement": "#ff69b4",      // Hot pink, for vibrant, energetic feelings
-        "fear": "#4b0082",            // Indigo, dark and intense
-        "gratitude": "#ffd700",       // Golden yellow, warm and thankful
-        "grief": "#696969",           // Dark grey, reflecting somberness
-        "joy": "#00eaff",             // Pure yellow, bright and cheerful
-        "love": "#ff1493",            // Deep pink, deep affection and romance
-        "nervousness": "#4682b4",     // Steel blue, cool and apprehensive
-        "optimism": "#00fa9a",        // Spring green, hopeful and bright
-        "pride": "#800080",           // Purple, dignified and proud
-        "realization": "#40e0d0",     // Turquoise, clarity and insight
-        "relief": "#98fb98",          // Pale green, soothing and light
-        "remorse": "#bc8f8f",         // Rosy brown, reflecting regret and sorrow
-        "sadness": "#00008b",         // Navy blue, deep and reflective
-        "surprise": "#ffa07a",        // Light salmon, unexpected and startling
-        "neutral": "#d3d3d3",         // Light grey, neutral and unassuming
-    };
+      "neutral":  "#D9D9D9",  // Softer gray; enough contrast with labels but less glare
+      "joy":      "#FFC72C",  // Rich golden yellow; higher contrast vs white backgrounds
+      "surprise": "#FF8C42",  // Vivid orange distinct from joy’s yellow
+      "anger":    "#D62828",  // Strong red with slightly darker value for text contrast
+      "sadness":  "#2878B5",  // Mid-blue with good readability in thin wedges
+      "fear":     "#7A3EB1",  // Clear violet; differentiated from both blue and red
+      "disgust":  "#6DAA2C"   // Cooler green to separate from yellow/orange family
+    }
 
     $('#requestAnalysis').click(function () {
         const requestForm = $('#analysisRequestForm');
