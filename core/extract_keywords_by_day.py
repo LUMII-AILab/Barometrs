@@ -50,14 +50,21 @@ def extract_keywords_from_comments():
         ('ekman', 'ru', kb_rubert_ekman, ru_stopwords)
     ]
 
-    processed_dates = session.query(models.EmotionKeywordsByDay.date).all()
-    processed_dates = set(processed_dates)
+    processed_dates = {
+        row[0] for row in session.query(
+            cast(models.EmotionKeywordsByDay.date, Date)
+        ).all()
+    }
+
+    # Ensure df dates are datetime.date
+    df['comment_date'] = pd.to_datetime(df['comment_date']).dt.date
 
     # For each day, extract keywords for each emotion and each language
     for date in df['comment_date'].unique():
         start = time.time()
 
-        if (date,) in processed_dates:
+        print(f'Processing date: {date}')
+        if date in processed_dates:
             print(f'Skipping {date} as it has already been processed')
             continue
 
