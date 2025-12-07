@@ -11,6 +11,9 @@ $(document).ready(function() {
     }
 
     $('#requestAnalysis').click(function () {
+        // clear previous selection border
+        $('.date-range-btn').css('border-width', '2px');
+
         const requestForm = $('#analysisRequestForm');
         requestForm.find('[name="currentPredictionType"]').val(requestForm.find('[name="predictionType"]').val());
         requestAndProcessAnalysisData();
@@ -554,3 +557,21 @@ function updateMonthOptions() {
     }
 }
 updateMonthOptions();
+
+$('.date-range-btn').on('click', function() {
+    const buttonElement = $(this);
+    const startMonth = buttonElement.data('start');
+    const endMonth = buttonElement.data('end');
+
+    if (startMonth) {
+        $('#analysisStartMonth').val(startMonth);
+    }
+    if (endMonth) {
+        $('#analysisEndMonth').val(endMonth);
+    }
+
+    updateMonthOptions();
+    $('#requestAnalysis').click();
+
+    buttonElement.css('border-width', '5px');
+});

@@ -45,6 +45,18 @@
         <button type="button" id="requestAnalysis">Submit</button>
     </form>
     <hr>
+    Historical events
+    <div id="historicalEvents">
+        <button type="button" class="date-range-btn" data-start="2020-01" data-end="2022-02">
+            COVID-19 pandemic<br>
+            2020-01-01 to 2022-02-05
+        </button>
+        <button type="button" class="date-range-btn" data-start="2022-07" data-end="2024-08">
+            Russian invasion of Ukraine<br>
+            2022-07-05 to 2024-08-02
+        </button>
+    </div>
+    <hr>
     <label for="chartOption">Layout:</label>
     <select id="chartOption" name="chartOption" onchange="updateCharts(this.value)">
         <option value="all">All Charts</option>
