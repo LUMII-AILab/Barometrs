@@ -36,15 +36,15 @@
    - TVNET - `data/tvnet/`
 9. Run `data_import.py` to import articles and comments into the database:
    ```
-   docker exec -it web bash -c "python3 /app/core/data_import.py"
+   docker exec -it -w /app web python3 -m core.data_import
    ```
 10. Run `predict_comments.py` to predict emotions for the imported comments:
    ```
-   docker exec -it web bash -c "python3 /app/core/predict_comments.py"
+   docker exec -it -w /app web python3 -m core.predict_comments
    ```
 11. Run `extract_keywords_by_day.py` to extract keywords:
    ```
-   docker exec -it web bash -c "python3 /app/core/extract_keywords_by_day.py"
+   docker exec -it -w /app web python3 -m core.extract_keywords_by_day
    ```
 
 # Database export
