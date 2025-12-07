@@ -1,7 +1,3 @@
-# Uncomment to run this script locally in the docker container
-# import sys
-# sys.path.append('/app')
-
 import time
 from sqlalchemy.orm import sessionmaker
 from db import models, crud_utils, database
