@@ -48,7 +48,7 @@
    ```
 
 # Database export
-Create database dump in plain-text format:
+Create database dump in plain-text format (preferred):
 ```
 docker exec db pg_dump -U barometrs -d barometrs -f /tmp/barometrs.sql
 docker cp db:/tmp/barometrs.sql ./barometrs.sql
