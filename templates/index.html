@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="/static/css/main.css">
 </head>
 <body style="padding: 20px">
-    <h2>1. Analysis for period.</h2>
+    <h2>1. Analysis for a period</h2>
     <form id="analysisRequestForm">
         <label for="analysisStartMonth">Start Month:</label>
         <select id="analysisStartMonth" name="analysisStartMonth" onchange="updateMonthOptions()">
@@ -85,13 +85,13 @@
         <div class="chart ru-chart" id="commentAndArticleCountChartRU"></div>
         <div class="chart totals-chart" id="commentAndArticleCountChartTotal"></div>
     </div>
-    <div style="font-size: 2rem;">2. Analysis for day: <div id="requestDate" style="display: inline;"><i>select data point from any of the plot charts</i></div></div>
+    <div style="font-size: 2rem;">2. Analysis for a day: <div id="requestDate" style="display: inline;"><i>Select a data point from any of the plot charts</i></div></div>
 
-    <h2>Commented articles</h2>
+    <h2>Articles</h2>
     <div id="articlesTable" class="tabulator-table"></div>
 
-    <h2>Clustered commented articles</h2>
-    <p>Note: <i>Articles are clustered by their headline. Articles with potentially similar headlines should be grouped together.</i></p>
+    <h2>Clustered articles</h2>
+    <p>Note: <i>Articles are automatically clustered by the semantic similarity of their headlines.</i></p>
     <div class="clusterFormDescription" style="display: none;">
         <p>
           Clustering is performed using the HDBSCAN algorithm. The default settings use a minimum cluster size of 2 and minimum samples of 2.<br>
@@ -116,9 +116,9 @@
     </div>
     <div id="clusteredArticlesTable" class="tabulator-table"></div>
 
-    <h2>Emotion keywords</h2>
-    <i>Note: Emotion keywords are extracted from comments. They may not be directly related to the articles or their content.</i>
-    <i>Processing time of many comments can take up to 1.5 minutes.</i>
+    <h2>Keywords</h2>
+    <i>Note: Keywords are automatically extracted from comments. They may be unrelated to the content of the corresponding articles.</i>
+    <i>In the case of many comments, processing time can take up to few minutes</i>
     <div id="emotionKeywordsTable" class="tabulator-table"></div>
 
     <h2>Comments</h2>
