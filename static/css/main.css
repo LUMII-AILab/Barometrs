@@ -8,6 +8,11 @@
         flex-basis: 33%; /* Each chart will take up roughly 30% of the flex container's width */
         height: 400px; /* Fixed height, adjust as needed */
 
+        /* Fix for overflow issues */
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+
         &.chart-title {
             height: 50px; /* Fixed height, adjust as needed */
             text-align: center;
