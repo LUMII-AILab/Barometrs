@@ -526,7 +526,7 @@ function updateCharts(language) {
         window.dispatchEvent(new Event('resize'));
     }, 500);
 }
-updateCharts('all');
+updateCharts($('#chartOption').val());
 
 function updateMonthOptions() {
     const startMonth = $('#analysisStartMonth');
