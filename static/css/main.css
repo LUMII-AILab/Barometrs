@@ -8,7 +8,7 @@
         flex-basis: 33%; /* Each chart will take up roughly 30% of the flex container's width */
         height: 400px; /* Fixed height, adjust as needed */
 
-        /* Fix for overflow issues */
+        /* Fix for overflow issue when one-column layout is loaded and user switches to multi-column */
         min-width: 0;
         max-width: 100%;
         box-sizing: border-box;
