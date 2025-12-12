@@ -87,43 +87,44 @@
     </div>
     <div style="font-size: 2rem;">2. Analysis for a day: <div id="requestDate" style="display: inline;"><i>Select a data point from any of the plot charts</i></div></div>
 
-    <h2>Articles</h2>
-    <div id="articlesTable" class="tabulator-table"></div>
-
-    <h2>Clustered articles</h2>
-    <p>Note: <i>Articles are automatically clustered by the semantic similarity of their headlines.</i></p>
-    <div class="clusterFormDescription" style="display: none;">
-        <p>
-          Clustering is performed using the HDBSCAN algorithm. The default settings use a minimum cluster size of 2 and minimum samples of 2.<br>
-          <strong>Minimum cluster size:</strong> The smallest number of articles that can form a cluster. If a group of articles is fewer than this number, it will not be recognized as a cluster.<br>
-          <strong>Minimum samples:</strong> The smallest number of close neighbors an article must have to be considered a core point of a cluster. Determines the cluster density requirement and affects algorithm's sensitivity to noise.
-        </p>
-        <form id="clusteredArticlesForm">
-            <label for="minClusterSize">Minimum cluster size:</label>
-            <input type="number" id="minClusterSize" name="minClusterSize" value="2" min="2" onchange="
-                if (parseInt(this.value) < 2) {
-                    this.value = 2;
-                }
-            ">
-            <label for="minSamples">Minimum samples:</label>
-            <input type="number" id="minSamples" name="minSamples" value="2" min="1" onchange="
-                if (parseInt(this.value) < 1) {
-                    this.value = 1;
-                }
-            ">
-            <button type="button" id="clusterArticlesButton">Re-cluster</button>
-        </form>
-    </div>
-    <div id="clusteredArticlesTable" class="tabulator-table"></div>
+    <h2>Comments</h2>
+    <button type="button" value="emotions" id="groupCommentsBy">Group by: Articles</button>
+    <div id="predictedCommentsTable" class="tabulator-table"></div>
 
     <h2>Keywords</h2>
     <i>Note: Keywords are automatically extracted from comments. They may be unrelated to the content of the corresponding articles.</i>
     <i>In the case of many comments, processing time can take up to few minutes</i>
     <div id="emotionKeywordsTable" class="tabulator-table"></div>
 
-    <h2>Comments</h2>
-    <button type="button" value="emotions" id="groupCommentsBy">Group by: Articles</button>
-    <div id="predictedCommentsTable" class="tabulator-table"></div>
-    <script src="/static/js/main.js"></script>
+
+{#    <h2>Articles</h2>#}
+{#    <div id="articlesTable" class="tabulator-table"></div>#}
+
+{#    <h2>Clustered articles</h2>#}
+{#    <p>Note: <i>Articles are automatically clustered by the semantic similarity of their headlines.</i></p>#}
+{#    <div class="clusterFormDescription" style="display: none;">#}
+{#        <p>#}
+{#          Clustering is performed using the HDBSCAN algorithm. The default settings use a minimum cluster size of 2 and minimum samples of 2.<br>#}
+{#          <strong>Minimum cluster size:</strong> The smallest number of articles that can form a cluster. If a group of articles is fewer than this number, it will not be recognized as a cluster.<br>#}
+{#          <strong>Minimum samples:</strong> The smallest number of close neighbors an article must have to be considered a core point of a cluster. Determines the cluster density requirement and affects algorithm's sensitivity to noise.#}
+{#        </p>#}
+{#        <form id="clusteredArticlesForm">#}
+{#            <label for="minClusterSize">Minimum cluster size:</label>#}
+{#            <input type="number" id="minClusterSize" name="minClusterSize" value="2" min="2" onchange="#}
+{#                if (parseInt(this.value) < 2) {#}
+{#                    this.value = 2;#}
+{#                }#}
+{#            ">#}
+{#            <label for="minSamples">Minimum samples:</label>#}
+{#            <input type="number" id="minSamples" name="minSamples" value="2" min="1" onchange="#}
+{#                if (parseInt(this.value) < 1) {#}
+{#                    this.value = 1;#}
+{#                }#}
+{#            ">#}
+{#            <button type="button" id="clusterArticlesButton">Re-cluster</button>#}
+{#        </form>#}
+{#    </div>#}
+{#    <div id="clusteredArticlesTable" class="tabulator-table"></div>#}
 </body>
+<script src="/static/js/main.js"></script>
 </html>

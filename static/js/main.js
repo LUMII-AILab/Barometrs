@@ -207,8 +207,8 @@ $(document).ready(function() {
         }
 
         function afterDateClick() {
-            createArticlesTable();
-            createClusteredArticlesTable();
+            // createArticlesTable();
+            // createClusteredArticlesTable();
             createPrecictedCommentsTable();
             createEmotionKeywordsTable();
         }
@@ -290,9 +290,9 @@ $(document).ready(function() {
         });
     }
 
-    $('#clusterArticlesButton').click(function() {
-        createClusteredArticlesTable();
-    });
+    // $('#clusterArticlesButton').click(function() {
+    //     createClusteredArticlesTable();
+    // });
 
     function createPrecictedCommentsTable() {
         var table = new Tabulator("#predictedCommentsTable", {
