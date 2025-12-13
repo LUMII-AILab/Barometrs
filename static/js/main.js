@@ -330,7 +330,7 @@ $(document).ready(function() {
             },
             columns: [
                 {title: "ID", field: "id", width: 30},
-                {title: "Comment", field: "comment_text", formatter: "textarea", hozAlign: "left"},
+                {title: "Comment", field: "comment_text", formatter: "textarea", hozAlign: "left", headerFilter: "input"},
                 {title: "Language", field: "comment_lang", hozAlign: "left", width: 30},
                 {title: "Article ID", field: "article_id", hozAlign: "left", width: 30, visible: false},
                 {title: "Article Title", field: "article_title", hozAlign: "left", width: 30, visible: false},
