@@ -1,4 +1,4 @@
-.flex-container {
+.chart-flex-container {
     display: flex;
     flex-wrap: wrap;  /* Allows items to wrap onto the next line */
     justify-content: space-between; /* Distributes space between and around content items */
@@ -59,7 +59,39 @@
 }
 
 .tabulator-table {
-    max-width: 1200px;
     resize: both;
     overflow: hidden;
+}
+
+.container-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 30px;
+
+    /* column on mobile, row on desktop */
+    @media (min-width: 1200px) {
+        flex-direction: row;
+    }
+}
+
+.comment-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+
+    @media (min-width: 1200px) {
+        max-width: 70%;
+    }
+}
+
+.keyword-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 50%;
+
+    @media (min-width: 1200px) {
+        max-width: 30%;
+    }
 }

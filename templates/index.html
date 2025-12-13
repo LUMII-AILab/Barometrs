@@ -68,7 +68,7 @@
         <label for="compactLayoutCheckbox">Compact Layout:</label>
         <input id="compactLayoutCheckbox" type="checkbox" name="compactLayoutCheckbox" value="1" onchange="applyCompactMode()">
     </div>
-    <div id="charts" class="flex-container">
+    <div id="charts" class="chart-flex-container">
         <div class="chart chart-title">LV Comments</div>
         <div class="chart chart-title">RU Comments</div>
         <div class="chart chart-title">All Comments</div>
@@ -87,14 +87,23 @@
     </div>
     <div style="font-size: 2rem;">2. Analysis for a day: <div id="requestDate" style="display: inline;"><i>Select a data point from any of the plot charts</i></div></div>
 
-    <h2>Comments</h2>
-    <button type="button" value="emotions" id="groupCommentsBy">Group by: Articles</button>
-    <div id="predictedCommentsTable" class="tabulator-table"></div>
-
-    <h2>Keywords</h2>
-    <i>Note: Keywords are automatically extracted from comments. They may be unrelated to the content of the corresponding articles.</i>
-    <i>In the case of many comments, processing time can take up to few minutes</i>
-    <div id="emotionKeywordsTable" class="tabulator-table"></div>
+    <div class="container-wrapper">
+        <div class="comment-container">
+            <div>
+                <h2>Comments</h2>
+                <button type="button" value="emotions" id="groupCommentsBy">Group by: Articles</button>
+            </div>
+            <div id="predictedCommentsTable" class="tabulator-table"></div>
+        </div>
+        <div class="keyword-container">
+            <div>
+                <h2>Keywords</h2>
+                <i>Note: Keywords are automatically extracted from comments. They may be unrelated to the content of the corresponding articles.</i>
+                <i>In the case of many comments, processing time can take up to few minutes</i>
+            </div>
+            <div id="emotionKeywordsTable" class="tabulator-table"></div>
+        </div>
+    </div>
 
 
 {#    <h2>Articles</h2>#}

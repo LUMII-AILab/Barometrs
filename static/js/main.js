@@ -306,7 +306,7 @@ $(document).ready(function() {
                     language: form.find('[name="language"]').val(),
                 }
             },
-            height: 450,
+            height: 1000,
             layout: "fitColumns",
             groupBy: function(data){
                 return data.article_title + 'separator' + data.article_id; //groups by data and age
@@ -329,7 +329,7 @@ $(document).ready(function() {
                 }
             },
             columns: [
-                {title: "ID", field: "id", width: 20},
+                {title: "ID", field: "id", width: 30},
                 {title: "Comment", field: "comment_text", formatter: "textarea", hozAlign: "left"},
                 {title: "Language", field: "comment_lang", hozAlign: "left", width: 30},
                 {title: "Article ID", field: "article_id", hozAlign: "left", width: 30, visible: false},
@@ -375,7 +375,7 @@ $(document).ready(function() {
                     language: form.find('[name="language"]').val(),
                 }
             },
-            height: 300,
+            height: 1000,
             layout: "fitColumns",
             columns: [
                 {title: "Emotion", field: "emotion", hozAlign: "left", width: 150},
