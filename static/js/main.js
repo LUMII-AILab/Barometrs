@@ -309,7 +309,7 @@ $(document).ready(function() {
             height: 1000,
             layout: "fitColumns",
             groupBy: function(data){
-                return data.article_title + 'separator' + data.article_id; //groups by data and age
+                return data.article_title + 'separator' + data.article_id + 'separator' + data.article_url;
             },
             groupHeader: function(value, count, data, group){
                 if (value === 'undefined') {
@@ -322,10 +322,11 @@ $(document).ready(function() {
                     emotion = value.split('emotion_separator')[0];
                     return "Emotion: " + emotion + "<span style='color:#d00; margin-left:10px;'>(" + count + " comments)</span>";
                 } else {
-                    article = value.split('separator');
-                    article_url_element = "<a href='https://delfi.lv/a/" + article[1] + "' target='_blank'>(article)</a>";
+                    article_title = value.split('separator')[0];
+                    article_url = value.split('separator')[2];
+                    article_url_element = "<a href='" + article_url + "' target='_blank'>" + article_url + "</a>";
 
-                    return article[0] + ' ' + article_url_element + "<span style='color:#d00; margin-left:10px;'>(" + count + " comments)</span>";
+                    return article_title + ' ' + article_url_element + "<span style='color:#d00; margin-left:10px;'>(" + count + " comments)</span>";
                 }
             },
             columns: [
@@ -334,6 +335,7 @@ $(document).ready(function() {
                 {title: "Language", field: "comment_lang", hozAlign: "left", width: 30},
                 {title: "Article ID", field: "article_id", hozAlign: "left", width: 30, visible: false},
                 {title: "Article Title", field: "article_title", hozAlign: "left", width: 30, visible: false},
+                {title: "Article URL", field: "article_url", hozAlign: "left", width: 30, visible: false},
                 {title: "Emotion", field: "prediction", hozAlign: "left", width: 100, headerFilter: "input"},
                 {title: "Score", field: "prediction_score", formatter: cell => cell.getValue() + "%", hozAlign: "left", width: 100},
             ],

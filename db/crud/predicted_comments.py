@@ -230,6 +230,7 @@ def get_predicted_comments_max_emotion_comments_by_type_and_request_date(db: Ses
         models.PredictedComment.text.label('comment_text'),
         models.PredictedComment.article_id.label('article_id'),
         models.RawArticle.headline.label('article_title'),
+        models.RawArticle.url.label('article_url'),
         models.PredictedComment.text_lang.label('comment_lang'),
     ).outerjoin(
         models.RawArticle, models.RawArticle.article_id == models.PredictedComment.article_id
@@ -271,7 +272,7 @@ def get_predicted_comments_max_emotion_comments_by_type_and_request_date(db: Ses
         return None
 
     df = pd.DataFrame(results, columns=[
-        'id', 'comment_text', 'article_id', 'article_title', 'comment_lang', 'prediction', 'prediction_score'
+        'id', 'comment_text', 'article_id', 'article_title', 'article_url', 'comment_lang', 'prediction', 'prediction_score'
     ])
 
     # Convert score to percentage and round to 2 decimal places
