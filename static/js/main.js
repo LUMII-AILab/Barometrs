@@ -395,6 +395,7 @@ $(document).ready(function() {
                 {
                     title: "Score (%)",
                     field: "confidence",
+                    width: 100,
                     formatter: cell => (cell.getValue() * 100).toFixed(2) + "%",
                     hozAlign: "left"
                 }
