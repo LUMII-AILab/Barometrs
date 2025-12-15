@@ -383,7 +383,7 @@ $(document).ready(function() {
                 return data.emotion;
             },
             groupHeader: function(value, count, data, group){
-                return "Emotion: " + value +  " keywords";
+                return "Emotion: " + value;
             },
             columns: [
                 {
