@@ -423,18 +423,19 @@ def get_predicted_comments_emotion_keywords(db: Session, prediction_type: str, r
     if not results:
         return None
 
-    df = pd.DataFrame(columns=['emotion', 'keywords'])
+    records = []
 
     for result in results:
         language = result.language
 
-        # Create a temporary DataFrame from JSONB
-        temp_df = pd.DataFrame(result.keywords.items(), columns=['emotion', 'keywords'])
+        for emotion, keyword_list in result.keywords.items():
+            for keyword, confidence in keyword_list:
+                records.append({
+                    'emotion': f"{language}_{emotion}",
+                    'keyword': keyword,
+                    'confidence': confidence
+                })
 
-        # Prefix each emotion with the language code
-        temp_df['emotion'] = language + "_" + temp_df['emotion']
-
-        # Append the temporary DataFrame
-        df = pd.concat([df, temp_df], ignore_index=True)
+    df = pd.DataFrame(records)
 
     return df.to_dict(orient='records')

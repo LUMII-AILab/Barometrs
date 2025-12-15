@@ -377,29 +377,25 @@ $(document).ready(function() {
             },
             height: 1000,
             layout: "fitColumns",
+            groupBy: function(data){
+                return data.emotion;
+            },
+            groupHeader: function(value, count, data, group){
+                return "Emotion: " + value +  " keywords";
+            },
             columns: [
-                {title: "Emotion", field: "emotion", hozAlign: "left", width: 150},
                 {
-                    title: "Keywords (keyword: score %)",
-                    field: "keywords",
+                    title: "Keyword",
+                    field: "keyword",
                     hozAlign: "left",
-                    formatter: function(cell, formatterParams, onRendered) {
-                        // Extract keyword array
-                        const keywords = cell.getValue();
-                        // Map each keyword to a formatted string with percentage
-                        const formattedKeywords = keywords.map(keyword => {
-                            const scoreAsPercent = (keyword[1] * 100).toFixed(2) + '%';
-                            return `${keyword[0]}: ${scoreAsPercent}`;
-                        }).sort((a, b) => {
-                            // Extract numerical values for sorting
-                            const scoreA = parseFloat(a.split(': ')[1]);
-                            const scoreB = parseFloat(b.split(': ')[1]);
-                            return scoreB - scoreA; // Sort in descending order
-                        });
-                        // Join all formatted keywords into a single string with line breaks
-                        return formattedKeywords.join("<br>");
-                    }
+                    headerFilter: "input",
                 },
+                {
+                    title: "Score (%)",
+                    field: "confidence",
+                    formatter: cell => (cell.getValue() * 100).toFixed(2) + "%",
+                    hozAlign: "left"
+                }
             ],
         });
     }
