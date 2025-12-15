@@ -32,7 +32,7 @@ def extract_keywords_from_comments():
     df = df.sort_values(by='comment_date')
 
     def extract_keywords(model, text, stopword_list=None):
-        keywords = model.extract_keywords(text, stop_words=stopword_list, keyphrase_ngram_range=(2, 2), top_n=5)
+        keywords = model.extract_keywords(text, stop_words=stopword_list, keyphrase_ngram_range=(1, 3), top_n=15)
         return keywords
 
     # kb_lvbert_normal = load_model.get_keybert_model_by_language_and_prediction_type('lv', 'normal')
