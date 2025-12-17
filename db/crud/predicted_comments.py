@@ -269,7 +269,7 @@ def get_predicted_comments_max_emotion_comments_by_type_and_request_date(db: Ses
     results = query.all()
 
     if not results:
-        return None
+        return pd.DataFrame().to_dict(orient='records')
 
     df = pd.DataFrame(results, columns=[
         'id', 'comment_text', 'article_id', 'article_title', 'article_url', 'comment_lang', 'prediction', 'prediction_score'
@@ -422,7 +422,7 @@ def get_predicted_comments_emotion_keywords(db: Session, prediction_type: str, r
     results = query.all()
 
     if not results:
-        return None
+        return pd.DataFrame().to_dict(orient='records')
 
     records = []
 
