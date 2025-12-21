@@ -103,3 +103,22 @@
         max-width: 30%;
     }
 }
+
+.loading-spinners {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+
+    .loading-spinner {
+        flex-basis: 50%;
+        height: 400px;
+        text-align: center;
+
+        .spinner-border {
+            width: 10rem;
+            height: 10rem;
+            margin-top: 7rem;
+        }
+    }
+}

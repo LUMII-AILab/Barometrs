@@ -11,16 +11,19 @@ $(document).ready(function() {
     }
 
     $('#requestAnalysis').click(function () {
+        $('.chart').each(function() {
+            Plotly.purge(this);
+        });
+
+        $('.loading-spinners').show();
+        $('#charts').height('0');
+
         // clear previous selection border
         $('.date-range-btn').css('border-width', '2px');
 
         const requestForm = $('#analysisRequestForm');
         requestForm.find('[name="currentPredictionType"]').val(requestForm.find('[name="predictionType"]').val());
         requestAndProcessAnalysisData();
-
-        $('.chart').each(function() {
-            Plotly.purge(this);
-        });
     });
 
     function requestAndProcessAnalysisData() {
@@ -62,6 +65,10 @@ $(document).ready(function() {
             },
             error: function (error) {
                 console.error('There was an error!', error);
+            },
+            complete: function() {
+                $('.loading-spinners').hide();
+                $('#charts').height('auto');
             }
         });
     }
