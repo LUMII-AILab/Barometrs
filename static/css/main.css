@@ -34,7 +34,11 @@
 
         &.compact-layout {
             .chart {
-                flex-basis: 50%;
+                flex-basis: 100%;
+
+                @media (min-width: 1200px) {
+                    flex-basis: 50%;
+                }
             }
         }
     }
