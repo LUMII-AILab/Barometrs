@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>News Comment Sentiment Analysis</title>
+    <title>Barometrs 2</title>
     <script src="/static/modules/bootstrap-5.3.3-dist/js/bootstrap.bundle.js"></script>
     <script src="/static/modules/jquery-3.7.1-min/jquery.js"></script>
     <script src="/static/modules/plotly-2.32.0.min.js"></script>
@@ -10,8 +10,10 @@
     <link rel="stylesheet" href="/static/modules/tabulator/dist/css/tabulator.min.css">
     <link rel="stylesheet" href="/static/css/main.css">
 </head>
-<body style="padding: 20px">
-    <h2>Statistics for a selected period</h2>
+<body style="padding: 20px; margin: 0 30px;">
+    <h1>Barometrs 2: Internet Emotion Index</h1>
+    <hr>
+    <h3>Statistics for a selected period</h3>
     <form id="analysisRequestForm">
         <label for="analysisStartMonth">Start Month:</label>
         <select id="analysisStartMonth" name="analysisStartMonth" onchange="updateMonthOptions()">
@@ -44,8 +46,8 @@
         <input type="text" name="language" value="lv" style="display: none;">
         <button type="button" id="requestAnalysis">Submit</button>
     </form>
-    <hr>
-    Historical events
+
+    <div style="margin-top: 10px;">Historical events</div>
     <div id="historicalEvents">
         <button type="button" class="date-range-btn" data-start="2020-01" data-end="2022-02">
             COVID-19 pandemic<br>
@@ -56,8 +58,7 @@
             Feb 2022 to Jul 2024
         </button>
     </div>
-    <hr>
-    <label for="chartOption">Layout:</label>
+    <label for="chartOption" style="margin-top: 20px;">Layout:</label>
     <select id="chartOption" name="chartOption" onchange="updateCharts(this.value)">
         <option value="all">All Charts</option>
         <option value="lv" selected>LV Charts</option>
