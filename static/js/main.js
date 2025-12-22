@@ -350,6 +350,14 @@ $(document).ready(function() {
 
         // Get group toggle button
         const groupToggle = $('#groupCommentsBy');
+
+        // clear previous click events
+        groupToggle.off('click');
+
+        // reset button value and text
+        groupToggle.val('emotions');
+        groupToggle.text('Group by: Articles');
+
         groupToggle.on('click', function() {
             const value = groupToggle.val();
             if (value === 'emotions') {
@@ -360,7 +368,7 @@ $(document).ready(function() {
                 new_text = 'Group by: Emotions'
             } else {
                 table.setGroupBy(function(data) {
-                    return data.article_title + 'separator' + data.article_id;
+                    return data.article_title + 'separator' + data.article_id + 'separator' + data.article_url;
                 });
                 new_value = 'emotions'
                 new_text = 'Group by: Articles'
