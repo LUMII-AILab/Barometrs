@@ -122,3 +122,34 @@
         }
     }
 }
+
+.header {
+    display: flex;
+    flex-direction: row;
+
+    .header-logos {
+        float: right;
+        margin-left: auto;
+        display: flex;
+        flex-direction: column;
+        flex-wrap: wrap;
+        gap: 5px;
+
+        div {
+            width: 100%;
+
+            img {
+                float: right;
+            }
+        }
+
+        @media (min-width: 1500px) {
+            flex-direction: row;
+            gap: 20px;
+
+            div {
+                width: auto;
+            }
+        }
+    }
+}
