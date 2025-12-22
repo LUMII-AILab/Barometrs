@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="/static/css/main.css">
 </head>
 <body style="padding: 20px">
-    <h2>1. Analysis for a period</h2>
+    <h2>Statistics for a selected period</h2>
     <form id="analysisRequestForm">
         <label for="analysisStartMonth">Start Month:</label>
         <select id="analysisStartMonth" name="analysisStartMonth" onchange="updateMonthOptions()">
@@ -99,7 +99,8 @@
         <div class="chart ru-chart" id="commentAndArticleCountChartRU"></div>
         <div class="chart totals-chart" id="commentAndArticleCountChartTotal"></div>
     </div>
-    <div style="font-size: 2rem;">2. Analysis for a day: <div id="requestDate" style="display: inline;"><i>Select a data point from any of the plot charts</i></div></div>
+    <hr>
+    <div style="font-size: 2rem;">Details for a selected date: <div id="requestDate" style="font-size: 2rem; display: inline;"><i>Select a data point from any of the plot charts</i></div></div>
 
     <div class="container-wrapper">
         <div class="comment-container">
