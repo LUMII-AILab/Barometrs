@@ -69,3 +69,29 @@ docker exec -u root barometrs-db bash -c "rm -rf /var/lib/postgresql/data/*"
 ```
 docker cp path_to/var/lib/postgresql/data/. barometrs-db:/var/lib/postgresql/data
 ```
+
+# Regenerate keywords
+1. Build containers in development mode:
+```
+docker-compose -f docker-compose.dev.yml up --build -d
+```
+
+2. Download language models:
+```
+docker exec -it web bash -c "python3 /app/download_models.py"
+```
+
+3. Clear existing keywords from database. In DB console, run:
+```
+truncate table emotion_keywords_by_day;
+```
+
+4. Run keyword extraction script:
+```
+docker exec -it -w /app web python3 -m core.extract_keywords_by_day
+```
+
+5. Switch back to production containers:
+```
+docker-compose -f docker-compose.prod.yml up --build -d
+```

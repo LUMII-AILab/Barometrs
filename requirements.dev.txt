@@ -5,7 +5,7 @@ sqlalchemy
 psycopg2-binary
 fasttext-wheel
 pandas
-transformers
+transformers<=4.49
 pgvector
 torch
 sentence_transformers
