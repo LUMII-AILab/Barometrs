@@ -1,5 +1,5 @@
 import datetime
-from sqlalchemy import Column, Integer, String, ForeignKey, TIMESTAMP, Float
+from sqlalchemy import Column, Integer, String, ForeignKey, TIMESTAMP, Float, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import JSONB
 from pgvector.sqlalchemy import Vector
@@ -93,6 +93,45 @@ class EmotionKeywordsByDay(Base):
     language = Column(String, index=True)
     prediction_type = Column(String, index=True)
     keywords_json = Column(JSONB)
+
+class AggressiveKeyword(Base):
+    __tablename__ = "aggressive_keywords"
+
+    id = Column(Integer, primary_key=True)
+    word = Column(String, unique=True, index=True)
+    weight = Column(Float)
+    frequency = Column(Integer)
+
+    category_diskrim = Column(Boolean, default=False)
+    category_lamuv = Column(Boolean, default=False)
+    category_netaisn = Column(Boolean, default=False)
+    category_aicin = Column(Boolean, default=False)
+    category_darb = Column(Boolean, default=False)
+    category_pers = Column(Boolean, default=False)
+    category_asoc = Column(Boolean, default=False)
+    category_milit = Column(Boolean, default=False)
+    category_nosod = Column(Boolean, default=False)
+    category_emoc = Column(Boolean, default=False)
+    category_nodev = Column(Boolean, default=False)
+
+class LemmatizedComment(Base):
+    __tablename__ = "lemmatized_comments"
+
+    id = Column(Integer, primary_key=True)
+    comment_id = Column(Integer, ForeignKey('raw_comments.id'), unique=True, index=True)
+    lemmas = Column(JSONB)    # list[str] of lemma strings
+    lemma_count = Column(Integer)  # pre-computed for aggregation
+
+class AggressivenessByDay(Base):
+    __tablename__ = "aggressiveness_by_day"
+
+    id = Column(Integer, primary_key=True)
+    date = Column(TIMESTAMP, index=True)
+    language = Column(String, index=True)
+    aggressive_word_count = Column(Integer)
+    aggressive_word_weight_sum = Column(Float)
+    total_word_count = Column(Integer)
+    aggressiveness_ratio = Column(Float)  # aggressive_word_count / total_word_count
 
 def register_models():
     # This function does nothing but ensures Python executes the model definitions
