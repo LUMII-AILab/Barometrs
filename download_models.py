@@ -1,5 +1,6 @@
 import os
 import requests
+import stanza
 from transformers import AutoModel, AutoTokenizer
 
 def download_huggingface_model(model_name, cache_dir):
@@ -48,5 +49,10 @@ if __name__ == '__main__':
     # Download FastText lid.176.bin model
     fasttext_url = "https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin"
     download_fasttext_model(fasttext_url, cache_dir="./models")
+
+    # Download Stanza models for lemmatization
+    for lang in ['lv', 'ru']:
+        print(f"Downloading Stanza model for language: {lang}")
+        stanza.download(lang, processors='tokenize,lemma')
 
     print("All models are downloaded and cached.")
