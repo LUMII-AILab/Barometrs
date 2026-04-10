@@ -17,3 +17,4 @@ plotly
 jupyter
 seaborn
 samplics
+stanza
