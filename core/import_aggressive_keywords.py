@@ -1,4 +1,5 @@
 import os
+import re
 import pandas as pd
 from sqlalchemy.orm import sessionmaker
 from db import database, models
@@ -8,6 +9,11 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=database.eng
 CSV_PATH = os.path.join(os.path.dirname(__file__), 'data', 'aggressive_keywords.csv')
 
 CATEGORY_COLUMNS = ['DISKRIM', 'LAMUV', 'NETAISN', 'AICIN', 'DARB', 'PERS', 'ASOC', 'MILIT', 'NOSOD', 'EMOC', 'NODEV']
+
+CYRILLIC_RE = re.compile(r'[а-яёА-ЯЁ]')
+
+def detect_word_language(word: str) -> str:
+    return 'ru' if CYRILLIC_RE.search(word) else 'lv'
 
 def import_keywords():
     session = SessionLocal()
@@ -25,6 +31,7 @@ def import_keywords():
         for _, row in df.iterrows():
             records.append({
                 'word':      row['word'],
+                'language':  detect_word_language(row['word']),
                 'weight':    row['weight'],
                 'frequency': 0,
                 'category_diskrim': bool(row['DISKRIM']),

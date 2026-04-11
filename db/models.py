@@ -99,6 +99,7 @@ class AggressiveKeyword(Base):
 
     id = Column(Integer, primary_key=True)
     word = Column(String, unique=True, index=True)
+    language = Column(String, index=True)
     weight = Column(Float)
     frequency = Column(Integer)
 
