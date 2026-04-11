@@ -39,7 +39,20 @@ def lemmatize_comments():
     session = SessionLocal()
     try:
         for lang in SUPPORTED_LANGUAGES:
-            print(f'\nLoading Stanza pipeline for language: {lang}')
+            total_to_process = (
+                session.query(models.RawComment)
+                .outerjoin(
+                    models.LemmatizedComment,
+                    models.LemmatizedComment.comment_id == models.RawComment.id
+                )
+                .filter(
+                    models.RawComment.comment_lang == lang,
+                    models.LemmatizedComment.comment_id == None,
+                )
+                .count()
+            )
+            print(f'\n[{lang}] Comments to process: {total_to_process}')
+            print(f'Loading Stanza pipeline for language: {lang}')
             nlp = get_stanza_pipeline(lang)
 
             last_id = 0
