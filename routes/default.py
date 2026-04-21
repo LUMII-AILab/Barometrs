@@ -15,7 +15,7 @@ r = redis.Redis(host='redis', port=6379, db=0)
 @router.get("/")
 def read_root(request: Request, session: Session = Depends(database.get_session)):
     allowed_months = pc_crud.get_predicted_comment_allowed_months(session)
-    return templates.TemplateResponse("index.html", {"request": request, "allowed_months": allowed_months})
+    return templates.TemplateResponse(request, "index.html", {"allowed_months": allowed_months})
 
 @router.get("/comments")
 def read_raw_comments(session: Session = Depends(database.get_session)):
