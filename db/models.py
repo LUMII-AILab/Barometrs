@@ -133,6 +133,7 @@ class AggressivenessByDay(Base):
     aggressive_word_weight_sum = Column(Float)
     total_word_count = Column(Integer)
     aggressiveness_ratio = Column(Float)  # aggressive_word_count / total_word_count
+    weighted_aggressiveness_ratio = Column(Float)  # aggressive_word_weight_sum / total_word_count
 
 def register_models():
     # This function does nothing but ensures Python executes the model definitions
