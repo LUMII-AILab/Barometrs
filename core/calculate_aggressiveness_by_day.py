@@ -13,11 +13,11 @@ def calculate_aggressiveness():
     session = SessionLocal()
     try:
         # Load aggressive keyword weights into memory
-        aggressive_set = {
-            row.word
+        aggressive_weights = {
+            row.word: row.weight
             for row in session.query(models.AggressiveKeyword).all()
         }
-        print(f'Loaded {len(aggressive_set)} aggressive keywords')
+        print(f'Loaded {len(aggressive_weights)} aggressive keywords')
 
         already_processed = {
             (row[0], row[1]) for row in session.query(
@@ -59,26 +59,32 @@ def calculate_aggressiveness():
 
                 total_word_count = int(day_df['lemma_count'].sum())
                 aggressive_word_count = 0
+                aggressive_word_weight_sum = 0.0
 
                 for lemmas in day_df['lemmas']:
                     if not lemmas:
                         continue
                     for lemma in lemmas:
-                        if lemma in aggressive_set:
+                        w = aggressive_weights.get(lemma)
+                        if w is not None:
                             aggressive_word_count += 1
+                            aggressive_word_weight_sum += w
 
                 ratio = aggressive_word_count / total_word_count if total_word_count > 0 else 0.0
+                weighted_ratio = aggressive_word_weight_sum / total_word_count if total_word_count > 0 else 0.0
 
                 session.add(models.AggressivenessByDay(
                     date=date,
                     language=lang,
                     aggressive_word_count=aggressive_word_count,
+                    aggressive_word_weight_sum=aggressive_word_weight_sum,
                     total_word_count=total_word_count,
                     aggressiveness_ratio=ratio,
+                    weighted_aggressiveness_ratio=weighted_ratio,
                 ))
                 already_processed.add((date, lang))
 
-                print(f'  {date} | total={total_word_count} aggressive={aggressive_word_count} ratio={ratio:.4f} ({time.time()-t0:.2f}s)')
+                print(f'  {date} | total={total_word_count} aggressive={aggressive_word_count} weight_sum={aggressive_word_weight_sum:.4f} ratio={ratio:.4f} weighted_ratio={weighted_ratio:.4f} ({time.time()-t0:.2f}s)')
 
             session.commit()
 
