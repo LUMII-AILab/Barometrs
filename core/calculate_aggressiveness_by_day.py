@@ -8,7 +8,8 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=database.eng
 
 SUPPORTED_LANGUAGES = ['lv', 'ru']
 
-
+# High memory usage but x3 times faster than doing it in SQL for each day+language
+# Expect ~10GB of RAM, it should run in ~5 minutes on a decent machine for comments from 2020-01-01 to 2024-06-30
 def calculate_aggressiveness():
     session = SessionLocal()
     try:
