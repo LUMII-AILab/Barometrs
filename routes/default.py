@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from starlette.templating import Jinja2Templates
 from db import crud_utils, database
 from db.crud import predicted_comments as pc_crud
+from db.crud import aggressiveness as agg_crud
 import redis
 import pickle
 
@@ -117,6 +118,18 @@ def read_predicted_comments_max_emotion_articles(
     )
 
     return predicted_comments
+
+@router.get("/aggressiveness_by_period")
+def read_aggressiveness_by_period(
+    language: str,
+    startDate: str = Query(..., regex="^\\d{4}-\\d{2}-\\d{2}$"),
+    endDate: str = Query(..., regex="^\\d{4}-\\d{2}-\\d{2}$"),
+    groupBy: str = Query(..., regex="^(day|week|month)$"),
+    session: Session = Depends(database.get_session)
+):
+    start_date = datetime.strptime(startDate, "%Y-%m-%d").date()
+    end_date = datetime.strptime(endDate, "%Y-%m-%d").date()
+    return agg_crud.get_aggressiveness_by_period(session, language, start_date, end_date, groupBy)
 
 @router.get("/predicted_comments_emotion_keywords")
 def read_predicted_comments_emotion_keywords(

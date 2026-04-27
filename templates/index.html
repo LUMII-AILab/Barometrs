@@ -93,6 +93,17 @@
             <div class="spinner-border text-primary"></div>
         </div>
     </div>
+    <hr>
+    <h3>Aggressiveness Index</h3>
+    <div id="aggressivenessCharts" class="chart-flex-container">
+        <div class="chart chart-title">LV Comments</div>
+        <div class="chart chart-title">RU Comments</div>
+        <div class="chart chart-title">All Comments</div>
+        <div class="chart lv-chart" id="aggressivenessRatioChartLV"></div>
+        <div class="chart ru-chart" id="aggressivenessRatioChartRU"></div>
+        <div class="chart totals-chart" id="aggressivenessRatioChartTotal"></div>
+    </div>
+    <hr>
     <div id="charts" class="chart-flex-container">
         <div class="chart chart-title">LV Comments</div>
         <div class="chart chart-title">RU Comments</div>
@@ -164,5 +175,6 @@
 {#    </div>#}
 {#    <div id="clusteredArticlesTable" class="tabulator-table"></div>#}
 </body>
+<script src="/static/js/aggressiveness.js"></script>
 <script src="/static/js/main.js"></script>
 </html>

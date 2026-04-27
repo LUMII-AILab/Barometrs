@@ -1,3 +1,46 @@
+function getQuantifier(groupBy) {
+    let quantifier = '';
+    if (groupBy === 'month') {
+        quantifier = 'Monthly';
+    } else if (groupBy === 'week') {
+        quantifier = 'Weekly';
+    } else if (groupBy === 'day') {
+        quantifier = 'Daily';
+    }
+
+    return quantifier;
+}
+
+// TODO: fix ticks and tick events.
+function getXAxisConfig(start, groupBy) {
+    let config = {};
+    if (groupBy === 'month') {
+        config = {
+            title: 'Month',
+            showticklabels: true,
+            tickangle: 'auto',
+            tick0: start,
+            dtick: 'M1',
+        };
+    } else if (groupBy === 'week') {
+        config = {
+            title: 'Week',
+            showticklabels: true,
+            tickangle: 'auto',
+            tick0: start,
+        };
+    } else if (groupBy === 'day') {
+        config = {
+            title: 'Date',
+            showticklabels: true,
+            tickangle: 'auto',
+            tick0: start,
+        };
+    }
+
+    return config;
+}
+
 // Plot charts
 $(document).ready(function() {
     const colorMap = {
@@ -17,6 +60,7 @@ $(document).ready(function() {
 
         $('.loading-spinners').show();
         $('#charts').height('0');
+        $('#aggressivenessCharts').height('0');
 
         // clear previous selection border
         $('.date-range-btn').css('border-width', '2px');
@@ -71,6 +115,8 @@ $(document).ready(function() {
                 $('#charts').height('auto');
             }
         });
+
+        fetchAndPlotAggressiveness(formData, groupBy);
     }
 
     function plotEmotionsPercentPeriodChart(data, chartId, groupBy, language) {
@@ -91,49 +137,6 @@ $(document).ready(function() {
         const chartDiv = $('#' + chartId);
 
         addRequestPredictedCommentsOnClickToChart(chartDiv);
-    }
-
-    function getQuantifier(groupBy) {
-        let quantifier = '';
-        if (groupBy === 'month') {
-            quantifier = 'Monthly';
-        } else if (groupBy === 'week') {
-            quantifier = 'Weekly';
-        } else if (groupBy === 'day') {
-            quantifier = 'Daily';
-        }
-
-        return quantifier;
-    }
-
-    // TODO: fix ticks and tick events.
-    function getXAxisConfig(start, groupBy) {
-        let config = {};
-        if (groupBy === 'month') {
-            config = {
-                title: 'Month',
-                showticklabels: true,
-                tickangle: 'auto',
-                tick0: start,
-                dtick: 'M1',
-            };
-        } else if (groupBy === 'week') {
-            config = {
-                title: 'Week',
-                showticklabels: true,
-                tickangle: 'auto',
-                tick0: start,
-            };
-        } else if (groupBy === 'day') {
-            config = {
-                title: 'Date',
-                showticklabels: true,
-                tickangle: 'auto',
-                tick0: start,
-            };
-        }
-
-        return config;
     }
 
     function getEmotionTraces(data) {
@@ -489,24 +492,22 @@ $(document).ready(function() {
 
 
 function adjustChartLayout(option) {
-    const chartContainer = $('#charts');
+    const containers = [$('#charts'), $('#aggressivenessCharts')];
 
-    chartContainer.removeClass('show-lv-charts');
-    chartContainer.removeClass('show-ru-charts');
-    chartContainer.removeClass('show-totals-charts');
-    switch(option) {
-        case 'all':
-            break;
-        case 'lv':
-            chartContainer.addClass('show-lv-charts');
-            break;
-        case 'ru':
-            chartContainer.addClass('show-ru-charts');
-            break;
-        case 'totals':
-            chartContainer.addClass('show-totals-charts');
-            break;
-    }
+    containers.forEach(function(chartContainer) {
+        chartContainer.removeClass('show-lv-charts show-ru-charts show-totals-charts');
+        switch(option) {
+            case 'lv':
+                chartContainer.addClass('show-lv-charts');
+                break;
+            case 'ru':
+                chartContainer.addClass('show-ru-charts');
+                break;
+            case 'totals':
+                chartContainer.addClass('show-totals-charts');
+                break;
+        }
+    });
     // trigger resize event to adjust chart layout
     window.dispatchEvent(new Event('resize'));
 }
