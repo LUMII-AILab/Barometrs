@@ -34,6 +34,8 @@ function renderAggressivenessChart(chartId, x, y, groupBy, language) {
         xaxis: getXAxisConfig(x[0], groupBy),
         yaxis: { title: 'Aggressiveness (%)', tickformat: '.4f' }
     }, { responsive: true });
+
+    addRequestPredictedCommentsOnClickToChart($('#' + chartId));
 }
 
 function plotAggressivenessChart(data, chartId, groupBy, language) {
