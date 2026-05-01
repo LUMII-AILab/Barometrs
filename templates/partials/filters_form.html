@@ -30,31 +30,20 @@
                         </div>
                     </div>
                 </div>
-                <div class="filter-group filter-group-right">
-                    <div class="filter-subgroup">
-                        <span class="filter-group-label">Group by</span>
-                        <div class="custom-select-wrapper">
-                            <select id="analysisGroupBy" name="analysisGroupBy">
-                                <option value="month">Month</option>
-                                <option value="week">Week</option>
-                                <option value="day">Day</option>
-                            </select>
-                            <svg class="select-chevron" width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><path d="M2 4l4 4 4-4"/></svg>
-                        </div>
-                    </div>
-                    <div class="filter-subgroup">
-                        <span class="filter-group-label">Layout</span>
-                        <div class="custom-select-wrapper">
-                            <select id="chartOption" name="chartOption" onchange="updateCharts(this.value)">
-                                <option value="all">All Charts</option>
-                                <option value="lv" selected>LV Charts</option>
-                                <option value="ru">RU Charts</option>
-                                <option value="totals">Totals Only</option>
-                            </select>
-                            <svg class="select-chevron" width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><path d="M2 4l4 4 4-4"/></svg>
-                        </div>
+
+                <div class="filter-group">
+                    <span class="filter-group-label">Group by</span>
+                    <div class="custom-select-wrapper">
+                        <select id="analysisGroupBy" name="analysisGroupBy">
+                            <option value="month">Month</option>
+                            <option value="week">Week</option>
+                            <option value="day">Day</option>
+                        </select>
+                        <svg class="select-chevron" width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><path d="M2 4l4 4 4-4"/></svg>
                     </div>
                 </div>
+
+                <button type="button" class="btn-submit-analysis" id="requestAnalysis">Submit</button>
             </div>
 
             {# Hidden fields #}
@@ -67,8 +56,8 @@
             <input type="text" name="language" value="lv" style="display: none;">
         </form>
 
-        <div class="filters-section-divider">
-            <span class="filter-group-label">Historical event overlays</span>
+        <div class="filter-overlays-section">
+            <span class="filter-group-label">Overlays</span>
             <div class="event-tags">
                 <button type="button" class="event-overlay-tag event-tag-covid" data-start="2020-01" data-end="2022-02">
                     <span class="event-tag-dot"></span>
@@ -83,15 +72,34 @@
             </div>
         </div>
 
-        <div class="filters-footer">
-            <div id="layoutConfig">
-                <label class="compact-view-label" for="compactLayoutCheckbox">
-                    <input type="checkbox" id="compactLayoutCheckbox" name="compactLayoutCheckbox" value="1" checked onchange="applyCompactMode()">
-                    <span class="compact-checkbox-custom"></span>
-                    Compact view
-                </label>
+        <div class="tab-bar-row">
+            <ul class="nav nav-pills" id="mainTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="emotions-tab" data-bs-toggle="tab" data-bs-target="#emotionsTabPane" type="button" role="tab">Emotions</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="aggressiveness-tab" data-bs-toggle="tab" data-bs-target="#aggressivenessTabPane" type="button" role="tab">Aggressiveness</button>
+                </li>
+            </ul>
+            <div class="view-controls">
+                <span class="view-control-label">Layout</span>
+                <div class="custom-select-wrapper view-control-select">
+                    <select id="chartOption" name="chartOption" onchange="updateCharts(this.value)">
+                        <option value="all">All Charts</option>
+                        <option value="lv" selected>LV Charts</option>
+                        <option value="ru">RU Charts</option>
+                        <option value="totals">Totals Only</option>
+                    </select>
+                    <svg class="select-chevron" width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><path d="M2 4l4 4 4-4"/></svg>
+                </div>
+                <div id="layoutConfig">
+                    <label class="compact-view-label" for="compactLayoutCheckbox">
+                        <input type="checkbox" id="compactLayoutCheckbox" name="compactLayoutCheckbox" value="1" checked onchange="applyCompactMode()">
+                        <span class="compact-checkbox-custom"></span>
+                        Compact
+                    </label>
+                </div>
             </div>
-            <button type="button" class="btn-submit-analysis" id="requestAnalysis">Submit</button>
         </div>
 
     </div>
