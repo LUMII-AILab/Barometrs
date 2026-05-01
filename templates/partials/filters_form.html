@@ -11,36 +11,27 @@
                 <div class="filter-group">
                     <span class="filter-group-label">Date range</span>
                     <div class="date-range-controls">
-                        <div class="custom-select-wrapper">
-                            <select id="analysisStartMonth" name="analysisStartMonth" onchange="updateMonthOptions()">
-                                {% for month in allowed_months.months %}
-                                    <option value="{{ month }}" {{ 'selected="selected"' if month == allowed_months.min_month }}>{{ month | month_label }}</option>
-                                {% endfor %}
-                            </select>
-                            <svg class="select-chevron" width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><path d="M2 4l4 4 4-4"/></svg>
-                        </div>
+                        <select id="analysisStartMonth" name="analysisStartMonth" class="form-select" onchange="updateMonthOptions()">
+                            {% for month in allowed_months.months %}
+                                <option value="{{ month }}" {{ 'selected="selected"' if month == allowed_months.min_month }}>{{ month | month_label }}</option>
+                            {% endfor %}
+                        </select>
                         <span class="date-range-separator">to</span>
-                        <div class="custom-select-wrapper">
-                            <select id="analysisEndMonth" name="analysisEndMonth" onchange="updateMonthOptions()">
-                                {% for month in allowed_months.months %}
-                                    <option value="{{ month }}" {{ 'selected="selected"' if month == allowed_months.max_month }}>{{ month | month_label }}</option>
-                                {% endfor %}
-                            </select>
-                            <svg class="select-chevron" width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><path d="M2 4l4 4 4-4"/></svg>
-                        </div>
+                        <select id="analysisEndMonth" name="analysisEndMonth" class="form-select" onchange="updateMonthOptions()">
+                            {% for month in allowed_months.months %}
+                                <option value="{{ month }}" {{ 'selected="selected"' if month == allowed_months.max_month }}>{{ month | month_label }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                 </div>
 
                 <div class="filter-group">
                     <span class="filter-group-label">Group by</span>
-                    <div class="custom-select-wrapper">
-                        <select id="analysisGroupBy" name="analysisGroupBy">
-                            <option value="month">Month</option>
-                            <option value="week">Week</option>
-                            <option value="day">Day</option>
-                        </select>
-                        <svg class="select-chevron" width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><path d="M2 4l4 4 4-4"/></svg>
-                    </div>
+                    <select id="analysisGroupBy" name="analysisGroupBy" class="form-select">
+                        <option value="month">Month</option>
+                        <option value="week">Week</option>
+                        <option value="day">Day</option>
+                    </select>
                 </div>
 
                 <button type="button" class="btn-submit-analysis" id="requestAnalysis">Apply</button>
@@ -78,15 +69,12 @@
             </div>
             <div class="view-controls">
                 <span class="view-control-label">Layout</span>
-                <div class="custom-select-wrapper view-control-select">
-                    <select id="chartOption" name="chartOption" onchange="updateCharts(this.value)">
-                        <option value="all">All Charts</option>
-                        <option value="lv" selected>LV Charts</option>
-                        <option value="ru">RU Charts</option>
-                        <option value="totals">Totals Only</option>
-                    </select>
-                    <svg class="select-chevron" width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><path d="M2 4l4 4 4-4"/></svg>
-                </div>
+                <select id="chartOption" name="chartOption" class="form-select view-control-select" onchange="updateCharts(this.value)">
+                    <option value="all">All Charts</option>
+                    <option value="lv" selected>LV Charts</option>
+                    <option value="ru">RU Charts</option>
+                    <option value="totals">Totals Only</option>
+                </select>
                 <div id="layoutConfig">
                     <label class="compact-view-label" for="compactLayoutCheckbox">
                         <input type="checkbox" id="compactLayoutCheckbox" name="compactLayoutCheckbox" value="1" checked onchange="applyCompactMode()">
