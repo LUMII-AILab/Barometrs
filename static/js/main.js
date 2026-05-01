@@ -62,9 +62,6 @@ $(document).ready(function() {
         $('#charts').height('0');
         $('#aggressivenessCharts').height('0');
 
-        // clear previous selection border
-        $('.date-range-btn').css('border-width', '2px');
-
         const requestForm = $('#analysisRequestForm');
         requestForm.find('[name="currentPredictionType"]').val(requestForm.find('[name="predictionType"]').val());
         requestAndProcessAnalysisData();
@@ -113,6 +110,7 @@ $(document).ready(function() {
             complete: function() {
                 $('.loading-spinners').hide();
                 $('#charts').height('auto');
+                setTimeout(updateChartOverlays, 500);
             }
         });
 
@@ -368,7 +366,7 @@ function applyCompactMode(option) {
             chartContainer.removeClass('compact-layout');
             break;
         default:
-            layoutConfig.css('display', 'inline-block');
+            layoutConfig.show();
             if (!compactMode) {
                 chartContainer.removeClass('compact-layout');
             } else {
@@ -397,47 +395,3 @@ document.getElementById('mainTabs').addEventListener('shown.bs.tab', function(e)
     window.dispatchEvent(new Event('resize'));
 });
 
-function updateMonthOptions() {
-    const startMonth = $('#analysisStartMonth');
-    const endMonth = $('#analysisEndMonth');
-    const startMonthValue = startMonth.find(':selected').val();
-    const endMonthValue = endMonth.find(':selected').val();
-    if (startMonthValue) {
-        endMonth.find('option').each(function() {
-            if (this.value < startMonthValue) {
-                $(this).prop('disabled', true);
-            } else {
-                $(this).prop('disabled', false);
-            }
-        });
-    }
-
-    if (endMonthValue) {
-        startMonth.find('option').each(function() {
-            if (this.value > endMonthValue) {
-                $(this).prop('disabled', true);
-            } else {
-                $(this).prop('disabled', false);
-            }
-        });
-    }
-}
-updateMonthOptions();
-
-$('.date-range-btn').on('click', function() {
-    const buttonElement = $(this);
-    const startMonth = buttonElement.data('start');
-    const endMonth = buttonElement.data('end');
-
-    if (startMonth) {
-        $('#analysisStartMonth').val(startMonth);
-    }
-    if (endMonth) {
-        $('#analysisEndMonth').val(endMonth);
-    }
-
-    updateMonthOptions();
-    $('#requestAnalysis').click();
-
-    buttonElement.css('border-width', '5px');
-});

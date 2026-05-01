@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="/static/modules/bootstrap-5.3.8-dist/css/bootstrap.css">
     <link rel="stylesheet" href="/static/modules/tabulator/dist/css/tabulator.min.css">
     <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/filters_form.css">
 </head>
 <body>
 <div class="page-wrapper">
@@ -32,76 +33,7 @@
 
     <div class="page-content">
 
-        <div class="card controls-card mb-4">
-            <div class="card-body">
-                <p class="controls-section-label">Statistics for a selected period</p>
-                <form id="analysisRequestForm">
-                    <div class="row g-2 align-items-end">
-                        <div class="col-auto">
-                            <label class="form-label" for="analysisStartMonth">Start Month</label>
-                            <select class="form-select form-select-sm" id="analysisStartMonth" name="analysisStartMonth" onchange="updateMonthOptions()">
-                                {% for month in allowed_months.months %}
-                                    <option value="{{ month }}" {{ 'selected="selected"' if month == allowed_months.min_month }}>{{ month }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-auto">
-                            <label class="form-label" for="analysisEndMonth">End Month</label>
-                            <select class="form-select form-select-sm" id="analysisEndMonth" name="analysisEndMonth" onchange="updateMonthOptions()">
-                                {% for month in allowed_months.months %}
-                                    <option value="{{ month }}" {{ 'selected="selected"' if month == allowed_months.max_month }}>{{ month }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-auto">
-                            <label class="form-label" for="analysisGroupBy">Group By</label>
-                            <select class="form-select form-select-sm" id="analysisGroupBy" name="analysisGroupBy">
-                                <option value="month">Month</option>
-                                <option value="week">Week</option>
-                                <option value="day">Day</option>
-                            </select>
-                        </div>
-                        <div class="col-auto">
-                            <label class="form-label" for="chartOption">Layout</label>
-                            <select class="form-select form-select-sm" id="chartOption" name="chartOption" onchange="updateCharts(this.value)">
-                                <option value="all">All Charts</option>
-                                <option value="lv" selected>LV Charts</option>
-                                <option value="ru">RU Charts</option>
-                                <option value="totals">Totals Only</option>
-                            </select>
-                        </div>
-                        <div class="col-auto" id="layoutConfig" style="display: none;">
-                            <div class="form-check mb-1">
-                                <input class="form-check-input" id="compactLayoutCheckbox" type="checkbox" name="compactLayoutCheckbox" value="1" checked onchange="applyCompactMode()">
-                                <label class="form-check-label" for="compactLayoutCheckbox">Compact</label>
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <button type="button" class="btn btn-primary btn-sm" id="requestAnalysis">Submit</button>
-                        </div>
-
-                        {# Hidden fields #}
-                        <label hidden for="predictionType">Prediction Type:</label>
-                        <select hidden id="predictionType" name="predictionType" disabled>
-                            <option value="ekman" selected>Go Emotions Ekman (6 base emotions + neutral)</option>
-                        </select>
-                        <input type="text" name="currentPredictionType" value="ekman" style="display: none;">
-                        <input type="date" name="requestDate" style="display: none;">
-                        <input type="text" name="language" value="lv" style="display: none;">
-                    </div>
-                </form>
-
-                <div class="mt-3 d-flex align-items-center flex-wrap gap-2">
-                    <span class="text-muted small">Historical events:</span>
-                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill date-range-btn" data-start="2020-01" data-end="2022-02">
-                        COVID-19 pandemic &mdash; Jan 2020 to Feb 2022
-                    </button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill date-range-btn" data-start="2022-07" data-end="2024-07">
-                        Russian invasion of Ukraine &mdash; Feb 2022 to Jul 2024
-                    </button>
-                </div>
-            </div>
-        </div>
+        {% include 'partials/filters_form.html' %}
 
         <div class="loading-spinners">
             <div class="loading-spinner">
@@ -241,5 +173,6 @@
 <script src="/static/js/chart_click_handler.js"></script>
 <script src="/static/js/aggressiveness_chart.js"></script>
 <script src="/static/js/main.js"></script>
+<script src="/static/js/filters_form.js"></script>
 </body>
 </html>

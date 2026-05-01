@@ -1,0 +1,98 @@
+<div class="card controls-card mb-4">
+    <div class="card-body filters-card-body">
+
+        <div class="filters-header">
+            <span class="filters-title">Statistics filters</span>
+            <button type="button" class="btn-reset-all" id="resetAllFilters">Reset all</button>
+        </div>
+
+        <form id="analysisRequestForm">
+            <div class="filters-row">
+                <div class="filter-group">
+                    <span class="filter-group-label">Date range</span>
+                    <div class="date-range-controls">
+                        <div class="custom-select-wrapper">
+                            <select id="analysisStartMonth" name="analysisStartMonth" onchange="updateMonthOptions()">
+                                {% for month in allowed_months.months %}
+                                    <option value="{{ month }}" {{ 'selected="selected"' if month == allowed_months.min_month }}>{{ month }}</option>
+                                {% endfor %}
+                            </select>
+                            <svg class="select-chevron" width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><path d="M2 4l4 4 4-4"/></svg>
+                        </div>
+                        <span class="date-range-separator">to</span>
+                        <div class="custom-select-wrapper">
+                            <select id="analysisEndMonth" name="analysisEndMonth" onchange="updateMonthOptions()">
+                                {% for month in allowed_months.months %}
+                                    <option value="{{ month }}" {{ 'selected="selected"' if month == allowed_months.max_month }}>{{ month }}</option>
+                                {% endfor %}
+                            </select>
+                            <svg class="select-chevron" width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><path d="M2 4l4 4 4-4"/></svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="filter-group filter-group-right">
+                    <div class="filter-subgroup">
+                        <span class="filter-group-label">Group by</span>
+                        <div class="custom-select-wrapper">
+                            <select id="analysisGroupBy" name="analysisGroupBy">
+                                <option value="month">Month</option>
+                                <option value="week">Week</option>
+                                <option value="day">Day</option>
+                            </select>
+                            <svg class="select-chevron" width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><path d="M2 4l4 4 4-4"/></svg>
+                        </div>
+                    </div>
+                    <div class="filter-subgroup">
+                        <span class="filter-group-label">Layout</span>
+                        <div class="custom-select-wrapper">
+                            <select id="chartOption" name="chartOption" onchange="updateCharts(this.value)">
+                                <option value="all">All Charts</option>
+                                <option value="lv" selected>LV Charts</option>
+                                <option value="ru">RU Charts</option>
+                                <option value="totals">Totals Only</option>
+                            </select>
+                            <svg class="select-chevron" width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><path d="M2 4l4 4 4-4"/></svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Hidden fields #}
+            <label hidden for="predictionType">Prediction Type:</label>
+            <select hidden id="predictionType" name="predictionType" disabled>
+                <option value="ekman" selected>Go Emotions Ekman (6 base emotions + neutral)</option>
+            </select>
+            <input type="text" name="currentPredictionType" value="ekman" style="display: none;">
+            <input type="date" name="requestDate" style="display: none;">
+            <input type="text" name="language" value="lv" style="display: none;">
+        </form>
+
+        <div class="filters-section-divider">
+            <span class="filter-group-label">Historical event overlays</span>
+            <div class="event-tags">
+                <button type="button" class="event-overlay-tag event-tag-covid" data-start="2020-01" data-end="2022-02">
+                    <span class="event-tag-dot"></span>
+                    <span class="event-tag-name">COVID-19 pandemic</span>
+                    <span class="event-tag-dates">Jan 2020 &ndash; Feb 2022</span>
+                </button>
+                <button type="button" class="event-overlay-tag event-tag-ukraine" data-start="2022-02" data-end="2024-07">
+                    <span class="event-tag-dot"></span>
+                    <span class="event-tag-name">Russo-Ukrainian war</span>
+                    <span class="event-tag-dates">Feb 2022 &ndash; Jul 2024</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="filters-footer">
+            <div id="layoutConfig">
+                <label class="compact-view-label" for="compactLayoutCheckbox">
+                    <input type="checkbox" id="compactLayoutCheckbox" name="compactLayoutCheckbox" value="1" checked onchange="applyCompactMode()">
+                    <span class="compact-checkbox-custom"></span>
+                    Compact view
+                </label>
+            </div>
+            <button type="button" class="btn-submit-analysis" id="requestAnalysis">Submit</button>
+        </div>
+
+    </div>
+</div>
