@@ -14,7 +14,7 @@
                         <div class="custom-select-wrapper">
                             <select id="analysisStartMonth" name="analysisStartMonth" onchange="updateMonthOptions()">
                                 {% for month in allowed_months.months %}
-                                    <option value="{{ month }}" {{ 'selected="selected"' if month == allowed_months.min_month }}>{{ month }}</option>
+                                    <option value="{{ month }}" {{ 'selected="selected"' if month == allowed_months.min_month }}>{{ month | month_label }}</option>
                                 {% endfor %}
                             </select>
                             <svg class="select-chevron" width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><path d="M2 4l4 4 4-4"/></svg>
@@ -23,7 +23,7 @@
                         <div class="custom-select-wrapper">
                             <select id="analysisEndMonth" name="analysisEndMonth" onchange="updateMonthOptions()">
                                 {% for month in allowed_months.months %}
-                                    <option value="{{ month }}" {{ 'selected="selected"' if month == allowed_months.max_month }}>{{ month }}</option>
+                                    <option value="{{ month }}" {{ 'selected="selected"' if month == allowed_months.max_month }}>{{ month | month_label }}</option>
                                 {% endfor %}
                             </select>
                             <svg class="select-chevron" width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><path d="M2 4l4 4 4-4"/></svg>

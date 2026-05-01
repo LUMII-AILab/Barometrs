@@ -11,6 +11,7 @@ import pickle
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
+templates.env.filters['month_label'] = lambda v: datetime.strptime(v, '%Y-%m').strftime('%b %Y')
 r = redis.Redis(host='redis', port=6379, db=0)
 
 @router.get("/")
