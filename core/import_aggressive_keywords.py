@@ -1,5 +1,6 @@
 import os
 import re
+from collections import Counter
 import pandas as pd
 from sqlalchemy.orm import sessionmaker
 from db import database, models
@@ -15,6 +16,22 @@ CYRILLIC_RE = re.compile(r'[а-яёА-ЯЁ]')
 def detect_word_language(word: str) -> str:
     return 'ru' if CYRILLIC_RE.search(word) else 'lv'
 
+def build_frequency_map(session, language: str) -> Counter:
+    """Return a Counter of lemma → total appearances across lemmatized comments for the given language."""
+    print(f'Building frequency map for language={language}...')
+    rows = (
+        session.query(models.LemmatizedComment.lemmas)
+        .join(models.RawComment, models.LemmatizedComment.comment_id == models.RawComment.id)
+        .filter(models.RawComment.comment_lang == language)
+        .all()
+    )
+    counter: Counter = Counter()
+    for (lemmas,) in rows:
+        if lemmas:
+            counter.update(lemmas)
+    print(f'  Processed {len(rows)} lemmatized comments, {sum(counter.values())} total lemma tokens.')
+    return counter
+
 def import_keywords():
     session = SessionLocal()
     try:
@@ -24,16 +41,22 @@ def import_keywords():
             session.query(models.AggressiveKeyword).delete()
             session.commit()
 
+        freq_lv = build_frequency_map(session, 'lv')
+        freq_ru = build_frequency_map(session, 'ru')
+
         df = pd.read_csv(CSV_PATH)
         print(f'Read {len(df)} keywords from {CSV_PATH}')
 
         records = []
         for _, row in df.iterrows():
+            word = row['word']
+            lang = detect_word_language(word)
+            freq_map = freq_ru if lang == 'ru' else freq_lv
             records.append({
-                'word':      row['word'],
-                'language':  detect_word_language(row['word']),
+                'word':      word,
+                'language':  lang,
                 'weight':    row['weight'],
-                'frequency': 0,
+                'frequency': freq_map[word.lower()],
                 'category_diskrim': bool(row['DISKRIM']),
                 'category_lamuv':   bool(row['LAMUV']),
                 'category_netaisn': bool(row['NETAISN']),
