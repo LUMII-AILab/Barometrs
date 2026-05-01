@@ -3,18 +3,17 @@
 .controls-card {
     border: 0.5px solid #dee2e6 !important;
     box-shadow: none;
-    border-radius: 12px !important;
 }
 
 .filters-card-body {
-    padding: 20px 24px;
+    padding: 10px 24px;
 }
 
 .filters-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 .filters-title {
