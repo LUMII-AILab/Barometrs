@@ -153,7 +153,7 @@ def get_predicted_comments_max_emotion_chart_data(
             emotions_grouped_percent_per_period = emotion_count_per_period.sum(axis=1) / total_emotions
 
             # Calculate emotion percentages per period
-            emotion_percent_per_period = emotion_count_per_period.div(emotion_count_per_period.sum(axis=0), axis=1)
+            emotion_percent_per_period = emotion_count_per_period.div(emotion_count_per_period.sum(axis=0), axis=1).fillna(0)
 
             return (emotion_count_per_period,
                     emotion_percent_per_period,
@@ -179,14 +179,14 @@ def get_predicted_comments_max_emotion_chart_data(
         chart_start = min(response1['chart_start'], response2['chart_start'])
 
         # sum article and comment counts
-        article_count_per_period = response1['article_count_per_period'] + response2['article_count_per_period']
-        comment_count_per_period = response1['comment_count_per_period'] + response2['comment_count_per_period']
+        article_count_per_period = response1['article_count_per_period'].add(response2['article_count_per_period'], fill_value=0)
+        comment_count_per_period = response1['comment_count_per_period'].add(response2['comment_count_per_period'], fill_value=0)
 
         # sum emotion counts
         emotion_count_per_period = response1['emotion_count_per_period'].add(response2['emotion_count_per_period'], fill_value=0)
 
         # calculate emotion percentages
-        emotion_percent_per_period = emotion_count_per_period.div(emotion_count_per_period.sum(axis=0), axis=1)
+        emotion_percent_per_period = emotion_count_per_period.div(emotion_count_per_period.sum(axis=0), axis=1).fillna(0)
 
         # calculate grouped emotion percentages
         emotions_grouped_percent_per_period = emotion_count_per_period.sum(axis=1) / emotion_count_per_period.sum().sum()
