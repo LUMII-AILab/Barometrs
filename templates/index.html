@@ -94,57 +94,77 @@
         </div>
     </div>
     <hr>
-    <h3>Aggressiveness Index</h3>
-    <div id="aggressivenessCharts" class="chart-flex-container">
-        <div class="chart chart-title">LV Comments</div>
-        <div class="chart chart-title">RU Comments</div>
-        <div class="chart chart-title">All Comments</div>
-        <div class="chart lv-chart" id="aggressivenessRatioChartLV"></div>
-        <div class="chart ru-chart" id="aggressivenessRatioChartRU"></div>
-        <div class="chart totals-chart" id="aggressivenessRatioChartTotal"></div>
+
+    <ul class="nav nav-pills" id="mainTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="emotions-tab" data-bs-toggle="tab" data-bs-target="#emotionsTabPane" type="button" role="tab">Emotions</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="aggressiveness-tab" data-bs-toggle="tab" data-bs-target="#aggressivenessTabPane" type="button" role="tab">Aggressiveness</button>
+        </li>
+    </ul>
+    <div class="tab-content" id="mainTabsContent">
+        <div class="tab-pane fade show active" id="emotionsTabPane" role="tabpanel">
+            <div id="charts" class="chart-flex-container">
+                <div class="chart chart-title">LV Comments</div>
+                <div class="chart chart-title">RU Comments</div>
+                <div class="chart chart-title">All Comments</div>
+                <div class="chart lv-chart" id="emotionsPercentDayChartLV"></div>
+                <div class="chart ru-chart" id="emotionsPercentDayChartRU"></div>
+                <div class="chart totals-chart" id="emotionsPercentDayChartTotal"></div>
+                <div class="chart lv-chart" id="emotionsPercentPieChartLV"></div>
+                <div class="chart ru-chart" id="emotionsPercentPieChartRU"></div>
+                <div class="chart totals-chart" id="emotionsPercentPieChartTotal"></div>
+                <div class="chart lv-chart" id="emotionsCountDayChartLV"></div>
+                <div class="chart ru-chart" id="emotionsCountDayChartRU"></div>
+                <div class="chart totals-chart" id="emotionsCountDayChartTotal"></div>
+                <div class="chart lv-chart" id="commentAndArticleCountChartLV"></div>
+                <div class="chart ru-chart" id="commentAndArticleCountChartRU"></div>
+                <div class="chart totals-chart" id="commentAndArticleCountChartTotal"></div>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="aggressivenessTabPane" role="tabpanel">
+            <div id="aggressivenessCharts" class="chart-flex-container">
+                <div class="chart chart-title">LV Comments</div>
+                <div class="chart chart-title">RU Comments</div>
+                <div class="chart chart-title">All Comments</div>
+                <div class="chart lv-chart" id="aggressivenessRatioChartLV"></div>
+                <div class="chart ru-chart" id="aggressivenessRatioChartRU"></div>
+                <div class="chart totals-chart" id="aggressivenessRatioChartTotal"></div>
+            </div>
+        </div>
     </div>
-    <hr>
-    <div id="charts" class="chart-flex-container">
-        <div class="chart chart-title">LV Comments</div>
-        <div class="chart chart-title">RU Comments</div>
-        <div class="chart chart-title">All Comments</div>
-        <div class="chart lv-chart" id="emotionsPercentDayChartLV"></div>
-        <div class="chart ru-chart" id="emotionsPercentDayChartRU"></div>
-        <div class="chart totals-chart" id="emotionsPercentDayChartTotal"></div>
-        <div class="chart lv-chart" id="emotionsPercentPieChartLV"></div>
-        <div class="chart ru-chart" id="emotionsPercentPieChartRU"></div>
-        <div class="chart totals-chart" id="emotionsPercentPieChartTotal"></div>
-        <div class="chart lv-chart" id="emotionsCountDayChartLV"></div>
-        <div class="chart ru-chart" id="emotionsCountDayChartRU"></div>
-        <div class="chart totals-chart" id="emotionsCountDayChartTotal"></div>
-        <div class="chart lv-chart" id="commentAndArticleCountChartLV"></div>
-        <div class="chart ru-chart" id="commentAndArticleCountChartRU"></div>
-        <div class="chart totals-chart" id="commentAndArticleCountChartTotal"></div>
-    </div>
+
     <hr>
     <div style="font-size: 2rem;">Details for a selected date: <div id="requestDate" style="font-size: 2rem; display: inline;"><i>Select a data point from any of the plot charts</i></div></div>
 
-    <div class="container-wrapper">
-        <div class="comment-container">
-            <div>
-                <h2>Comments</h2>
-                <button type="button" value="emotions" id="groupCommentsBy">Group by: Articles</button>
+    <div id="emotionsDetailSection">
+        <div class="container-wrapper">
+            <div class="comment-container">
+                <div>
+                    <h2>Comments</h2>
+                    <button type="button" value="emotions" id="groupCommentsBy">Group by: Articles</button>
+                </div>
+                <div id="predictedCommentsTable" class="tabulator-table"></div>
             </div>
-            <div id="predictedCommentsTable" class="tabulator-table"></div>
+            <div class="keyword-container">
+                <div style="margin-bottom: 5px;">
+                    <h2>Keywords</h2>
+                    <i>Note: Keywords are automatically extracted from comments.</i>
+                </div>
+                <div id="emotionKeywordsTable" class="tabulator-table"></div>
+            </div>
         </div>
-        <div class="keyword-container">
-            <div style="margin-bottom: 5px;">
-                <h2>Keywords</h2>
-                <i>Note: Keywords are automatically extracted from comments.</i>
+    </div>
+    <div id="aggressivenessDetailSection" style="display:none;">
+        <div class="container-wrapper">
+            <div class="keyword-container">
+                <div style="margin-bottom: 5px;">
+                    <h2>Aggressive Keywords</h2>
+                    <i>Note: Counts how often each aggressive keyword appears in comments for the selected day.</i>
+                </div>
+                <div id="aggressiveKeywordsTable" class="tabulator-table"></div>
             </div>
-            <div id="emotionKeywordsTable" class="tabulator-table"></div>
-        </div>
-        <div class="keyword-container">
-            <div style="margin-bottom: 5px;">
-                <h2>Aggressive Keywords</h2>
-                <i>Note: Counts how often each aggressive keyword appears in comments for the selected day.</i>
-            </div>
-            <div id="aggressiveKeywordsTable" class="tabulator-table"></div>
         </div>
     </div>
     <hr>

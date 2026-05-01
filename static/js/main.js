@@ -390,6 +390,13 @@ function updateCharts(language) {
 }
 updateCharts($('#chartOption').val());
 
+document.getElementById('mainTabs').addEventListener('shown.bs.tab', function(e) {
+    const isAggressiveness = e.target.getAttribute('data-bs-target') === '#aggressivenessTabPane';
+    $('#emotionsDetailSection').toggle(!isAggressiveness);
+    $('#aggressivenessDetailSection').toggle(isAggressiveness);
+    window.dispatchEvent(new Event('resize'));
+});
+
 function updateMonthOptions() {
     const startMonth = $('#analysisStartMonth');
     const endMonth = $('#analysisEndMonth');
