@@ -28,14 +28,14 @@
     background: none;
     border: none;
     padding: 0;
-    color: #0dcaf0;
+    color: #0d6efd;
     font-size: 13px;
     cursor: pointer;
     text-decoration: none;
 }
 
 .btn-reset-all:hover {
-    color: #0a9fbf;
+    color: #0b5ed7;
     text-decoration: underline;
 }
 
@@ -106,7 +106,7 @@
 .btn-submit-analysis {
     margin-left: auto;
     align-self: flex-end;
-    background: #0da9fd;
+    background: #0d6efd;
     color: #fff;
     border: none;
     border-radius: 8px;
@@ -121,7 +121,7 @@
 }
 
 .btn-submit-analysis:hover {
-    background: #0aa2c0;
+    background: #0b5ed7;
 }
 
 /* === Overlays section === */
@@ -219,9 +219,9 @@
 }
 
 .tab-bar-row .nav-pills .nav-link.active {
-    color: #0da9fd;
+    color: #0d6efd;
     background: none;
-    border-bottom-color: #0da9fd;
+    border-bottom-color: #0d6efd;
 }
 
 .tab-bar-row .nav-pills .nav-link:hover:not(.active) {
@@ -282,8 +282,8 @@
 }
 
 .compact-view-label input[type="checkbox"]:checked + .compact-checkbox-custom {
-    background-color: #0dcaf0;
-    border-color: #0dcaf0;
+    background-color: #0d6efd;
+    border-color: #0d6efd;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 6l3 3 5-5'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: center;
