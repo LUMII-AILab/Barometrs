@@ -126,10 +126,6 @@
 
 /* === Overlays section === */
 
-.filter-overlays-section {
-    margin-bottom: 14px;
-}
-
 .event-tags {
     display: flex;
     flex-wrap: wrap;

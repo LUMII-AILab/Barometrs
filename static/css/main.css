@@ -223,8 +223,6 @@ body {
 /* === Nav pills === */
 
 .nav-pills {
-    margin-top: 20px;
-
     .nav-link {
         font-size: 17px;
 
