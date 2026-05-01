@@ -85,11 +85,7 @@
     width: 100%;
 
     @media (min-width: 1200px) {
-        max-width: 70%;
-
-        #predictedCommentsTable {
-            width: 95%;
-        }
+        max-width: 60%;
     }
 }
 
@@ -100,7 +96,7 @@
     max-width: 50%;
 
     @media (min-width: 1200px) {
-        max-width: 30%;
+        max-width: 20%;
     }
 }
 

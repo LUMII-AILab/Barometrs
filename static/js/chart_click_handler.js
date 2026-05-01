@@ -20,6 +20,7 @@ function addRequestPredictedCommentsOnClickToChart($divElem) {
         // createClusteredArticlesTable();
         createPrecictedCommentsTable();
         createEmotionKeywordsTable();
+        createAggressiveKeywordsTable();
     }
 
     $divElem[0].on('plotly_click', function (data) {

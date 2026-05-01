@@ -131,6 +131,16 @@ def read_aggressiveness_by_period(
     end_date = datetime.strptime(endDate, "%Y-%m-%d").date()
     return agg_crud.get_aggressiveness_by_period(session, language, start_date, end_date, groupBy)
 
+@router.get("/aggressive_keywords_by_day")
+def read_aggressive_keywords_by_day(
+    language: str,
+    requestDate: str = Query(..., regex="^\\d{4}-\\d{2}-\\d{2}$"),
+    session: Session = Depends(database.get_session)
+):
+    request_date = datetime.strptime(requestDate, "%Y-%m-%d").date()
+    return agg_crud.get_aggressive_keywords_count_by_day(session, request_date, language)
+
+
 @router.get("/predicted_comments_emotion_keywords")
 def read_predicted_comments_emotion_keywords(
     predictionType: str,
