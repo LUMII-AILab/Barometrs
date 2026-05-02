@@ -63,7 +63,7 @@ function updateChartOverlays() {
         'emotionsPercentDayChartLV', 'emotionsPercentDayChartRU', 'emotionsPercentDayChartTotal',
         'emotionsCountDayChartLV', 'emotionsCountDayChartRU', 'emotionsCountDayChartTotal',
         'commentAndArticleCountChartLV', 'commentAndArticleCountChartRU', 'commentAndArticleCountChartTotal',
-        'aggressivenessRatioChartLV', 'aggressivenessRatioChartRU', 'aggressivenessRatioChartTotal'
+        'aggressivenessRatioChart'
     ];
     const shapes = getOverlayShapes();
     timeSeriesChartIds.forEach(function(chartId) {
