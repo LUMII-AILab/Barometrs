@@ -73,3 +73,31 @@ def get_aggressive_keywords_count_by_day(session: Session, request_date: date, l
         }
         for row in rows
     ]
+
+
+def get_all_aggressive_keywords(session: Session):
+    rows = (
+        session.query(models.AggressiveKeyword)
+        .order_by(models.AggressiveKeyword.language, models.AggressiveKeyword.word)
+        .all()
+    )
+    return [
+        {
+            'word': row.word,
+            'language': row.language,
+            'weight': row.weight,
+            'frequency': row.frequency,
+            'category_diskrim': row.category_diskrim,
+            'category_lamuv': row.category_lamuv,
+            'category_netaisn': row.category_netaisn,
+            'category_aicin': row.category_aicin,
+            'category_darb': row.category_darb,
+            'category_pers': row.category_pers,
+            'category_asoc': row.category_asoc,
+            'category_milit': row.category_milit,
+            'category_nosod': row.category_nosod,
+            'category_emoc': row.category_emoc,
+            'category_nodev': row.category_nodev,
+        }
+        for row in rows
+    ]

@@ -3,6 +3,7 @@
 .controls-card {
     border: 0.5px solid #dee2e6 !important;
     box-shadow: none;
+    border-radius: 0;
 }
 
 .filters-card-body {

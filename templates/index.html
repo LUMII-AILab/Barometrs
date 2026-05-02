@@ -80,6 +80,9 @@
                     <div class="chart totals-chart" id="aggressivenessRatioChartTotal"></div>
                 </div>
             </div>
+            <div class="tab-pane fade" id="aggressiveKeywordsListTabPane" role="tabpanel">
+                <div id="aggressiveKeywordsListTable" class="tabulator-table"></div>
+            </div>
         </div>
 
         <div class="details-header">
@@ -93,7 +96,9 @@
                     <div class="comment-container">
                         <div class="d-flex align-items-center mb-3 gap-3">
                             <h2 class="detail-section-title mb-0">Comments</h2>
-                            <button type="button" value="emotions" id="groupCommentsBy" class="btn btn-outline-secondary btn-sm">Group by: Articles</button>
+                            <button type="button" value="emotions" id="groupCommentsBy"
+                                    class="btn btn-outline-secondary btn-sm">Group by: Articles
+                            </button>
                         </div>
                         <div id="predictedCommentsTable" class="tabulator-table"></div>
                     </div>
@@ -114,7 +119,8 @@
                     <div class="keyword-container">
                         <div class="mb-3">
                             <h2 class="detail-section-title mb-1">Aggressive Keywords</h2>
-                            <p class="text-muted small mb-0">Counts how often each aggressive keyword appears in comments for the selected day.</p>
+                            <p class="text-muted small mb-0">Counts how often each aggressive keyword appears in
+                                comments for the selected day.</p>
                         </div>
                         <div id="aggressiveKeywordsTable" class="tabulator-table"></div>
                     </div>
@@ -159,6 +165,7 @@
 {#    </div>#}
 {#    <div id="clusteredArticlesTable" class="tabulator-table"></div>#}
 
+<script src="/static/js/aggressive_keywords_list_table.js"></script>
 <script src="/static/js/predicted_comments_table.js"></script>
 <script src="/static/js/emotion_keywords_table.js"></script>
 <script src="/static/js/aggressive_keywords_table.js"></script>

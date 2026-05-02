@@ -389,8 +389,11 @@ function updateCharts(language) {
 updateCharts($('#chartOption').val());
 
 document.getElementById('mainTabs').addEventListener('shown.bs.tab', function(e) {
-    const isAggressiveness = e.target.getAttribute('data-bs-target') === '#aggressivenessTabPane';
-    $('#emotionsDetailSection').toggle(!isAggressiveness);
+    const target = e.target.getAttribute('data-bs-target');
+    const isAggressiveness = target === '#aggressivenessTabPane';
+    const isAggressiveKeywords = target === '#aggressiveKeywordsListTabPane';
+    $('.details-header').toggle(!isAggressiveKeywords);
+    $('#emotionsDetailSection').toggle(!isAggressiveness && !isAggressiveKeywords);
     $('#aggressivenessDetailSection').toggle(isAggressiveness);
     window.dispatchEvent(new Event('resize'));
 });

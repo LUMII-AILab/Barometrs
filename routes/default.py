@@ -142,6 +142,11 @@ def read_aggressive_keywords_by_day(
     return agg_crud.get_aggressive_keywords_count_by_day(session, request_date, language)
 
 
+@router.get("/aggressive_keywords")
+def read_aggressive_keywords(session: Session = Depends(database.get_session)):
+    return agg_crud.get_all_aggressive_keywords(session)
+
+
 @router.get("/predicted_comments_emotion_keywords")
 def read_predicted_comments_emotion_keywords(
     predictionType: str,
