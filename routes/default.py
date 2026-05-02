@@ -66,7 +66,7 @@ def read_predicted_comments_max_emotion_charts(
 def read_predicted_comments_max_emotion_comments(
     predictionType: str,
     language: str,
-    requestDate: str = Query(..., regex="^\\d{4}-\\d{2}-\\d{2}$"),
+    requestDate: str = Query(..., pattern="^\\d{4}-\\d{2}-\\d{2}$"),
     session: Session = Depends(database.get_session)
 ):
     request_date = datetime.strptime(requestDate, "%Y-%m-%d").date()
@@ -84,7 +84,7 @@ def read_predicted_comments_max_emotion_comments(
 def read_predicted_comments_max_emotion_articles(
     predictionType: str,
     language: str,
-    requestDate: str = Query(..., regex="^\\d{4}-\\d{2}-\\d{2}$"),
+    requestDate: str = Query(..., pattern="^\\d{4}-\\d{2}-\\d{2}$"),
     session: Session = Depends(database.get_session)
 ):
     request_date = datetime.strptime(requestDate, "%Y-%m-%d").date()
@@ -102,7 +102,7 @@ def read_predicted_comments_max_emotion_articles(
 def read_predicted_comments_max_emotion_articles(
     predictionType: str,
     language: str,
-    requestDate: str = Query(..., regex="^\\d{4}-\\d{2}-\\d{2}$"),
+    requestDate: str = Query(..., pattern="^\\d{4}-\\d{2}-\\d{2}$"),
     minClusterSize: int = Query(5),
     minSamples: int = Query(2),
     session: Session = Depends(database.get_session)
@@ -123,9 +123,9 @@ def read_predicted_comments_max_emotion_articles(
 @router.get("/aggressiveness_by_period")
 def read_aggressiveness_by_period(
     language: str,
-    startDate: str = Query(..., regex="^\\d{4}-\\d{2}-\\d{2}$"),
-    endDate: str = Query(..., regex="^\\d{4}-\\d{2}-\\d{2}$"),
-    groupBy: str = Query(..., regex="^(day|week|month)$"),
+    startDate: str = Query(..., pattern="^\\d{4}-\\d{2}-\\d{2}$"),
+    endDate: str = Query(..., pattern="^\\d{4}-\\d{2}-\\d{2}$"),
+    groupBy: str = Query(..., pattern="^(day|week|month)$"),
     session: Session = Depends(database.get_session)
 ):
     start_date = datetime.strptime(startDate, "%Y-%m-%d").date()
@@ -135,7 +135,7 @@ def read_aggressiveness_by_period(
 @router.get("/aggressive_keywords_by_day")
 def read_aggressive_keywords_by_day(
     language: str,
-    requestDate: str = Query(..., regex="^\\d{4}-\\d{2}-\\d{2}$"),
+    requestDate: str = Query(..., pattern="^\\d{4}-\\d{2}-\\d{2}$"),
     session: Session = Depends(database.get_session)
 ):
     request_date = datetime.strptime(requestDate, "%Y-%m-%d").date()
@@ -151,7 +151,7 @@ def read_aggressive_keywords(session: Session = Depends(database.get_session)):
 def read_predicted_comments_emotion_keywords(
     predictionType: str,
     language: str,
-    requestDate: str = Query(..., regex="^\\d{4}-\\d{2}-\\d{2}$"),
+    requestDate: str = Query(..., pattern="^\\d{4}-\\d{2}-\\d{2}$"),
     session: Session = Depends(database.get_session)
 ):
     request_date = datetime.strptime(requestDate, "%Y-%m-%d").date()
