@@ -392,6 +392,7 @@ document.getElementById('mainTabs').addEventListener('shown.bs.tab', function(e)
     const target = e.target.getAttribute('data-bs-target');
     const isAggressiveness = target === '#aggressivenessTabPane';
     const isAggressiveKeywords = target === '#aggressiveKeywordsListTabPane';
+    $('.controls-card').toggle(!isAggressiveKeywords);
     $('.details-header').toggle(!isAggressiveKeywords);
     $('#emotionsDetailSection').toggle(!isAggressiveness && !isAggressiveKeywords);
     $('#aggressivenessDetailSection').toggle(isAggressiveness);
