@@ -62,8 +62,7 @@ function updateChartOverlays() {
     const timeSeriesChartIds = [
         'emotionsPercentDayChartLV', 'emotionsPercentDayChartRU', 'emotionsPercentDayChartTotal',
         'emotionsCountDayChartLV', 'emotionsCountDayChartRU', 'emotionsCountDayChartTotal',
-        'commentAndArticleCountChartLV', 'commentAndArticleCountChartRU', 'commentAndArticleCountChartTotal',
-        'aggressivenessRatioChart'
+        'commentAndArticleCountChartLV', 'commentAndArticleCountChartRU', 'commentAndArticleCountChartTotal'
     ];
     const shapes = getOverlayShapes();
     timeSeriesChartIds.forEach(function(chartId) {
@@ -72,4 +71,5 @@ function updateChartOverlays() {
             Plotly.relayout(chartId, { shapes: shapes });
         }
     });
+    updateAggressivenessChartOverlays();
 }
