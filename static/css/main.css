@@ -231,3 +231,8 @@ body {
         }
     }
 }
+
+/* === Aggressive Keyword Table === */
+#aggressiveKeywordsListTable.tabulator {
+    font-size: 13px;
+}
