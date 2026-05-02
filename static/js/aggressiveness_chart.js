@@ -19,6 +19,19 @@ function fetchAndPlotAggressiveness(formData, groupBy) {
     });
 }
 
+function smaWindow(groupBy) {
+    if (groupBy === 'day') return 7;
+    if (groupBy === 'week') return 4;
+    return 3;
+}
+
+function computeSMA(values, window) {
+    return values.map(function(_, i) {
+        const slice = values.slice(Math.max(0, i - window + 1), i + 1);
+        return slice.reduce(function(a, b) { return a + b; }, 0) / slice.length;
+    });
+}
+
 function plotAggressivenessChart(lvData, ruData, chartId, groupBy) {
     const ruByDate = Object.fromEntries(ruData.map(d => [d.date, d]));
 
@@ -58,6 +71,41 @@ function plotAggressivenessChart(lvData, ruData, chartId, groupBy) {
             line: { color: '#6A0DAD' }
         }
     ];
+
+    const win = smaWindow(groupBy);
+    const lvSMA = computeSMA(lvData.map(d => d.weighted_aggressiveness_ratio * 100), win);
+    const ruSMA = computeSMA(ruData.map(d => d.weighted_aggressiveness_ratio * 100), win);
+    const combinedSMA = computeSMA(combinedY, win);
+
+    traces.push(
+        {
+            x: lvData.map(d => d.date),
+            y: lvSMA,
+            type: 'scatter',
+            mode: 'lines',
+            name: 'LV trend',
+            line: { color: '#D62828', dash: 'dash', width: 1.5 },
+            opacity: 0.7
+        },
+        {
+            x: ruData.map(d => d.date),
+            y: ruSMA,
+            type: 'scatter',
+            mode: 'lines',
+            name: 'RU trend',
+            line: { color: '#1565C0', dash: 'dash', width: 1.5 },
+            opacity: 0.7
+        },
+        {
+            x: combinedX,
+            y: combinedSMA,
+            type: 'scatter',
+            mode: 'lines',
+            name: 'LV+RU trend',
+            line: { color: '#6A0DAD', dash: 'dash', width: 1.5 },
+            opacity: 0.7
+        }
+    );
 
     const allDates = lvData.map(d => d.date).concat(ruData.map(d => d.date));
 
