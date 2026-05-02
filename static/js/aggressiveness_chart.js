@@ -36,29 +36,30 @@ function computeSMA(values, window) {
 
 function downloadAggressivenessXls() {
     if (!_aggressivenessData) return;
-    const { lvData, ruData, combinedY, lvY, ruY, lvSMA, ruSMA, combinedSMA } = _aggressivenessData;
+    const { lvData, ruData, lvY, ruY, lvSMA, ruSMA, lvWeightedSMA, ruWeightedSMA } = _aggressivenessData;
 
     const ruIdxByDate = Object.fromEntries(ruData.map(function(d, i) { return [d.date, i]; }));
 
     let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office"'
         + ' xmlns:x="urn:schemas-microsoft-com:office:excel">'
         + '<head><meta charset="utf-8"></head><body><table>';
-    html += '<tr><th>Date</th><th>LV (%)</th><th>LV Trend (%)</th>'
-        + '<th>RU (%)</th><th>RU Trend (%)</th>'
-        + '<th>LV+RU (%)</th><th>LV+RU Trend (%)</th></tr>';
+    html += '<tr><th>Date</th>'
+        + '<th>LV (%)</th><th>LV Trend (%)</th><th>LV Weighted Trend (%)</th>'
+        + '<th>RU (%)</th><th>RU Trend (%)</th><th>RU Weighted Trend (%)</th></tr>';
 
     lvData.forEach(function(d, i) {
         const ruIdx = ruIdxByDate[d.date];
-        const ruVal  = ruIdx !== undefined ? ruY[ruIdx]  : '';
+        const ruVal = ruIdx !== undefined ? ruY[ruIdx] : '';
         const ruSmaVal = ruIdx !== undefined ? ruSMA[ruIdx] : '';
+        const ruWeightedSmaVal = ruIdx !== undefined ? ruWeightedSMA[ruIdx] : '';
         html += '<tr>'
             + '<td>' + d.date + '</td>'
             + '<td>' + lvY[i] + '</td>'
             + '<td>' + lvSMA[i] + '</td>'
+            + '<td>' + lvWeightedSMA[i] + '</td>'
             + '<td>' + ruVal + '</td>'
             + '<td>' + ruSmaVal + '</td>'
-            + '<td>' + combinedY[i] + '</td>'
-            + '<td>' + combinedSMA[i] + '</td>'
+            + '<td>' + ruWeightedSmaVal + '</td>'
             + '</tr>';
     });
 
@@ -97,28 +98,18 @@ function updateAggressivenessChartOverlays() {
 }
 
 function plotAggressivenessChart(lvData, ruData, chartId, groupBy) {
-    const ruByDate = Object.fromEntries(ruData.map(d => [d.date, d]));
-
-    const combinedX = [];
-    const combinedY = [];
-    lvData.forEach(function(lv) {
-        const ru = ruByDate[lv.date];
-        const totalWeightSum = lv.aggressive_word_weight_sum + (ru ? ru.aggressive_word_weight_sum : 0);
-        const totalWords = lv.total_word_count + (ru ? ru.total_word_count : 0);
-        combinedX.push(lv.date);
-        combinedY.push(totalWords > 0 ? totalWeightSum / totalWords * 100 : 0);
-    });
-
     const win = smaWindow(groupBy);
-    const lvY = lvData.map(d => d.weighted_aggressiveness_ratio * 100);
-    const ruY = ruData.map(d => d.weighted_aggressiveness_ratio * 100);
+
+    const lvY = lvData.map(d => d.unweighted_aggressiveness_ratio);
+    const ruY = ruData.map(d => d.unweighted_aggressiveness_ratio);
     const lvSMA = computeSMA(lvY, win);
     const ruSMA = computeSMA(ruY, win);
-    const combinedSMA = computeSMA(combinedY, win);
+    const lvWeightedSMA = computeSMA(lvData.map(d => d.weighted_aggressiveness_ratio), win);
+    const ruWeightedSMA = computeSMA(ruData.map(d => d.weighted_aggressiveness_ratio), win);
 
-    const dataSeries = [
+    const series = [
         {
-            name: 'LV',
+            name: 'LV actual',
             type: 'line',
             data: lvData.map((d, i) => [d.date, lvY[i]]),
             itemStyle: { color: '#D62828' },
@@ -133,7 +124,15 @@ function plotAggressivenessChart(lvData, ruData, chartId, groupBy) {
             lineStyle: { color: '#D62828', type: 'dashed', width: 1.5, opacity: 0.7 }
         },
         {
-            name: 'RU',
+            name: 'LV weighted trend',
+            type: 'line',
+            symbol: 'none',
+            data: lvData.map((d, i) => [d.date, lvWeightedSMA[i]]),
+            itemStyle: { color: '#FF6B6B' },
+            lineStyle: { color: '#FF6B6B', type: 'dotted', width: 1.5, opacity: 0.7 }
+        },
+        {
+            name: 'RU actual',
             type: 'line',
             data: ruData.map((d, i) => [d.date, ruY[i]]),
             itemStyle: { color: '#1565C0' },
@@ -148,23 +147,16 @@ function plotAggressivenessChart(lvData, ruData, chartId, groupBy) {
             lineStyle: { color: '#1565C0', type: 'dashed', width: 1.5, opacity: 0.7 }
         },
         {
-            name: 'LV+RU',
-            type: 'line',
-            data: combinedX.map((d, i) => [d, combinedY[i]]),
-            itemStyle: { color: '#6A0DAD' },
-            lineStyle: { color: '#6A0DAD' }
-        },
-        {
-            name: 'LV+RU trend',
+            name: 'RU weighted trend',
             type: 'line',
             symbol: 'none',
-            data: combinedX.map((d, i) => [d, combinedSMA[i]]),
-            itemStyle: { color: '#6A0DAD' },
-            lineStyle: { color: '#6A0DAD', type: 'dashed', width: 1.5, opacity: 0.7 }
+            data: ruData.map((d, i) => [d.date, ruWeightedSMA[i]]),
+            itemStyle: { color: '#64B5F6' },
+            lineStyle: { color: '#64B5F6', type: 'dotted', width: 1.5, opacity: 0.7 }
         }
     ];
 
-    _aggressivenessData = { lvData, ruData, combinedX, combinedY, lvY, ruY, lvSMA, ruSMA, combinedSMA, series: dataSeries };
+    _aggressivenessData = { lvData, ruData, lvY, ruY, lvSMA, ruSMA, lvWeightedSMA, ruWeightedSMA, series };
 
     const dom = document.getElementById(chartId);
     if (_aggressivenessChart) _aggressivenessChart.dispose();
@@ -180,11 +172,9 @@ function plotAggressivenessChart(lvData, ruData, chartId, groupBy) {
         },
         legend: {
             bottom: '55px',
-            data: ['LV', 'LV trend', 'RU', 'RU trend', 'LV+RU', 'LV+RU trend']
+            data: ['LV actual', 'LV trend', 'LV weighted trend', 'RU actual', 'RU trend', 'RU weighted trend']
         },
-        grid: {
-            bottom: '120px'
-        },
+        grid: { bottom: '120px' },
         dataZoom: [
             { type: 'inside', xAxisIndex: 0 },
             { type: 'slider', xAxisIndex: 0, bottom: '10px', height: '40px' }
@@ -207,7 +197,7 @@ function plotAggressivenessChart(lvData, ruData, chartId, groupBy) {
             name: 'Aggressiveness (%)',
             axisLabel: { formatter: function(v) { return v.toFixed(4); } }
         },
-        series: dataSeries.concat([
+        series: series.concat([
             { name: '__overlays__', type: 'line', data: [], markArea: { silent: true, data: [] } }
         ])
     });

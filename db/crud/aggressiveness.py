@@ -8,10 +8,11 @@ def get_aggressiveness_by_period(session: Session, language: str, start_date: da
     trunc = {'month': 'month', 'week': 'week'}.get(group_by, 'day')
     period = func.date_trunc(trunc, models.AggressivenessByDay.date).label('date')
     weight_sum = func.sum(models.AggressivenessByDay.aggressive_word_weight_sum).label('aggressive_word_weight_sum')
+    word_count = func.sum(models.AggressivenessByDay.aggressive_word_count).label('aggressive_word_count')
     total_count = func.sum(models.AggressivenessByDay.total_word_count).label('total_word_count')
 
     rows = (
-        session.query(period, weight_sum, total_count)
+        session.query(period, weight_sum, word_count, total_count)
         .filter(
             models.AggressivenessByDay.language == language,
             models.AggressivenessByDay.date >= start_date,
@@ -25,10 +26,14 @@ def get_aggressiveness_by_period(session: Session, language: str, start_date: da
     return [
         {
             'date': row.date.strftime('%Y-%m-%d'),
+            'aggressive_word_count': row.aggressive_word_count,
             'aggressive_word_weight_sum': row.aggressive_word_weight_sum,
             'total_word_count': row.total_word_count,
+            'unweighted_aggressiveness_ratio': (
+                row.aggressive_word_count / row.total_word_count * 100 if row.total_word_count else 0
+            ),
             'weighted_aggressiveness_ratio': (
-                row.aggressive_word_weight_sum / row.total_word_count if row.total_word_count else 0
+                row.aggressive_word_weight_sum / row.total_word_count * 100 if row.total_word_count else 0
             ),
         }
         for row in rows
