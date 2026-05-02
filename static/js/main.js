@@ -388,14 +388,33 @@ function updateCharts(language) {
 }
 updateCharts($('#chartOption').val());
 
+const tabVisibility = {
+    '#emotionsTabPane': {
+        '.controls-card': true,
+        '.view-controls': true,
+        '.details-header': true,
+        '#emotionsDetailSection': true,
+        '#aggressivenessDetailSection': false
+    },
+    '#aggressivenessTabPane': {
+        '.controls-card': true,
+        '.view-controls': false,
+        '.details-header': true,
+        '#emotionsDetailSection': false,
+        '#aggressivenessDetailSection': true
+    },
+    '#aggressiveKeywordsListTabPane': {
+        '.controls-card': false,
+        '.view-controls': false,
+        '.details-header': false,
+        '#emotionsDetailSection': false,
+        '#aggressivenessDetailSection': false
+    },
+};
+
 document.getElementById('mainTabs').addEventListener('shown.bs.tab', function(e) {
-    const target = e.target.getAttribute('data-bs-target');
-    const isAggressiveness = target === '#aggressivenessTabPane';
-    const isAggressiveKeywords = target === '#aggressiveKeywordsListTabPane';
-    $('.controls-card').toggle(!isAggressiveKeywords);
-    $('.details-header').toggle(!isAggressiveKeywords);
-    $('#emotionsDetailSection').toggle(!isAggressiveness && !isAggressiveKeywords);
-    $('#aggressivenessDetailSection').toggle(isAggressiveness);
+    const config = tabVisibility[e.target.getAttribute('data-bs-target')] ?? {};
+    Object.entries(config).forEach(([selector, visible]) => $(selector).toggle(visible));
     window.dispatchEvent(new Event('resize'));
 });
 
