@@ -107,52 +107,64 @@ function plotAggressivenessChart(lvData, ruData, chartId, groupBy) {
     const lvWeightedSMA = computeSMA(lvData.map(d => d.weighted_aggressiveness_ratio), win);
     const ruWeightedSMA = computeSMA(ruData.map(d => d.weighted_aggressiveness_ratio), win);
 
-    const series = [
+const series = [
         {
             name: 'LV actual',
             type: 'line',
+            symbol: 'circle',
+            symbolSize: 4,
             data: lvData.map((d, i) => [d.date, lvY[i]]),
-            itemStyle: { color: '#D62828' },
-            lineStyle: { color: '#D62828' }
+            itemStyle: { color: '#D62828', opacity: 0.5 },
+            lineStyle: { color: '#D62828', width: 1, opacity: 0.4 }
         },
         {
             name: 'LV trend',
             type: 'line',
-            symbol: 'none',
+            symbol: 'circle',
+            symbolSize: 5,
+            showSymbol: false,
             data: lvData.map((d, i) => [d.date, lvSMA[i]]),
             itemStyle: { color: '#D62828' },
-            lineStyle: { color: '#D62828', type: 'dashed', width: 1.5, opacity: 0.7 }
+            lineStyle: { color: '#D62828', type: 'dashed', width: 2.5, opacity: 0.85 }
         },
         {
             name: 'LV weighted trend',
             type: 'line',
-            symbol: 'none',
+            symbol: 'diamond',
+            symbolSize: 6,
+            showSymbol: false,
             data: lvData.map((d, i) => [d.date, lvWeightedSMA[i]]),
-            itemStyle: { color: '#FF6B6B' },
-            lineStyle: { color: '#FF6B6B', type: 'dotted', width: 1.5, opacity: 0.7 }
+            itemStyle: { color: '#E85D04' },
+            lineStyle: { color: '#E85D04', type: [8, 4], width: 2.5, opacity: 0.85 }
         },
         {
             name: 'RU actual',
             type: 'line',
+            symbol: 'circle',
+            symbolSize: 4,
             data: ruData.map((d, i) => [d.date, ruY[i]]),
-            itemStyle: { color: '#1565C0' },
-            lineStyle: { color: '#1565C0' }
+            itemStyle: { color: '#1565C0', opacity: 0.5 },
+            lineStyle: { color: '#1565C0', width: 1, opacity: 0.4 }
         },
         {
             name: 'RU trend',
             type: 'line',
-            symbol: 'none',
+            symbol: 'circle',
+            symbolSize: 5,
+            showSymbol: false,
             data: ruData.map((d, i) => [d.date, ruSMA[i]]),
-            itemStyle: { color: '#1565C0' },
-            lineStyle: { color: '#1565C0', type: 'dashed', width: 1.5, opacity: 0.7 }
+            itemStyle: { color: '#1565C0', type: 'dashed', width: 2.5, opacity: 0.85 },
+            lineStyle: { color: '#1565C0', type: 'dashed', width: 2.5, opacity: 0.85 }
         },
         {
             name: 'RU weighted trend',
             type: 'line',
-            symbol: 'none',
+            symbol: 'diamond',
+            symbolSize: 6,
+            showSymbol: false,
             data: ruData.map((d, i) => [d.date, ruWeightedSMA[i]]),
-            itemStyle: { color: '#64B5F6' },
-            lineStyle: { color: '#64B5F6', type: 'dotted', width: 1.5, opacity: 0.7 }
+            itemStyle: { color: '#0288D1' },
+            lineStyle: { color: '#0288D1', type: [8, 4], width: 2.5, opacity: 0.85 }
         }
     ];
 
