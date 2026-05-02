@@ -179,26 +179,6 @@
     padding-top: 10px;
 }
 
-.tab-bar-row .nav-pills .nav-link {
-    font-size: 14px;
-    padding: 4px 12px;
-    color: #6c757d;
-    background: none;
-    border-radius: 0;
-    border-bottom: 2px solid transparent;
-}
-
-.tab-bar-row .nav-pills .nav-link.active {
-    color: #0d6efd;
-    background: none;
-    border-bottom-color: #0d6efd;
-}
-
-.tab-bar-row .nav-pills .nav-link:hover:not(.active) {
-    color: #343a40;
-    background: none;
-}
-
 /* === View controls (Layout + Compact) === */
 
 .view-controls {

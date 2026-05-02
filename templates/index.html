@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="/static/modules/tabulator/dist/css/tabulator.min.css">
     <link rel="stylesheet" href="/static/css/main.css">
     <link rel="stylesheet" href="/static/css/filters_form.css">
+    <link rel="stylesheet" href="/static/css/nav_tabs.css">
 </head>
 <body>
 <div class="page-wrapper">
@@ -32,6 +33,8 @@
     </header>
 
     <div class="page-content">
+
+        {% include 'partials/nav_tabs.html' %}
 
         {% include 'partials/filters_form.html' %}
 
