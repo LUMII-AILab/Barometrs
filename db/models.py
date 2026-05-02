@@ -54,19 +54,6 @@ class PredictedComment(Base):
     raw_comments = relationship("RawComment", back_populates="predicted_comments")
     raw_articles = relationship("RawArticle", back_populates="predicted_comments")
 
-# TODO: @see db/crud/predicted_comments.py::get_predicted_comments_max_emotion_chart_data
-# Use aggregation to make data preparation for aggregation charts faster
-class PredictedCommentAggregations(Base):
-    __tablename__ = "predicted_comment_aggregations"
-
-    id = Column(Integer, primary_key=True)
-    date = Column(TIMESTAMP, index=True)
-    scope_type = Column(Integer, index=True, comment="1 - day, 2 - week, 3 - month")
-    language = Column(String, index=True)
-    prediction_type = Column(Integer, index=True, comment="1 - normal, 2 - ekman")
-    emotion = Column(String, index=True)
-    count = Column(Integer)
-
 class LogRawArticlesImport(Base):
     __tablename__ = "log_raw_articles_imports"
 
