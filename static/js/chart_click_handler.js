@@ -1,3 +1,19 @@
+function addRequestPredictedCommentsOnClickToAggressivenessChart($divElem) {
+    const languageByTrace = { LV: 'lv', RU: 'ru' };
+    const $requestForm = $('#analysisRequestForm');
+
+    $divElem[0].on('plotly_click', function (data) {
+        if (!data.points) return;
+        data.points.forEach(function (pt) {
+            const language = languageByTrace[pt.data && pt.data.name] || 'all';
+            $('#requestDate').html(pt.x);
+            $requestForm.find('[name="requestDate"]').val(pt.x);
+            $requestForm.find('[name="language"]').val(language);
+            createAggressiveKeywordsTable();
+        });
+    });
+}
+
 function addRequestPredictedCommentsOnClickToChart($divElem) {
     function setLanguageAndRequestDate($divElem, date) {
         const requestForm = $('#analysisRequestForm');

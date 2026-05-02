@@ -67,5 +67,5 @@ function plotAggressivenessChart(lvData, ruData, chartId, groupBy) {
         yaxis: { title: 'Aggressiveness (%)', tickformat: '.4f' }
     }, { responsive: true });
 
-    addRequestPredictedCommentsOnClickToChart($('#' + chartId));
+    addRequestPredictedCommentsOnClickToAggressivenessChart($('#' + chartId));
 }
