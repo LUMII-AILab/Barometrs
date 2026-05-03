@@ -2,16 +2,20 @@ let _aggressivenessChart = null;
 let _aggressivenessData = null;
 let _aggressivenessResizeHandler = null;
 
-function fetchAndPlotAggressiveness(formData, groupBy) {
+function _buildDateRange(formData) {
     const startDate = formData.startMonth + '-01';
     const d = new Date(formData.endMonth + '-01');
     d.setMonth(d.getMonth() + 1);
     d.setDate(0);
-    const endDate = d.toISOString().slice(0, 10);
+    return { startDate, endDate: d.toISOString().slice(0, 10) };
+}
+
+function fetchAndPlotAggressiveness(formData, groupBy) {
+    const { startDate, endDate } = _buildDateRange(formData);
 
     $.when(
-        $.getJSON('/aggressiveness_by_period', { language: 'lv', startDate: startDate, endDate: endDate, groupBy: groupBy }),
-        $.getJSON('/aggressiveness_by_period', { language: 'ru', startDate: startDate, endDate: endDate, groupBy: groupBy })
+        $.getJSON('/aggressiveness_by_period', { language: 'lv', startDate, endDate, groupBy }),
+        $.getJSON('/aggressiveness_by_period', { language: 'ru', startDate, endDate, groupBy })
     ).done(function(lvResult, ruResult) {
         plotAggressivenessChart(lvResult[0], ruResult[0], 'aggressivenessRatioChart', groupBy);
         $('#aggressivenessCharts').height('auto');

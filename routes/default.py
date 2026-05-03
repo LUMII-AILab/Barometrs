@@ -132,6 +132,25 @@ def read_aggressiveness_by_period(
     end_date = datetime.strptime(endDate, "%Y-%m-%d").date()
     return agg_crud.get_aggressiveness_by_period(session, language, start_date, end_date, groupBy)
 
+@router.get("/aggressiveness_by_period_per_website")
+def read_aggressiveness_by_period_per_website(
+    startDate: str = Query(..., pattern="^\\d{4}-\\d{2}-\\d{2}$"),
+    endDate: str = Query(..., pattern="^\\d{4}-\\d{2}-\\d{2}$"),
+    groupBy: str = Query(..., pattern="^(day|week|month)$"),
+    session: Session = Depends(database.get_session)
+):
+    cache_key = f"agg_by_website_{startDate}_{endDate}_{groupBy}"
+    cached = r.get(cache_key)
+    if cached:
+        return pickle.loads(cached)
+
+    start_date = datetime.strptime(startDate, "%Y-%m-%d").date()
+    end_date = datetime.strptime(endDate, "%Y-%m-%d").date()
+    result = agg_crud.get_aggressiveness_by_period_per_website(session, start_date, end_date, groupBy)
+    r.set(cache_key, pickle.dumps(result))
+    return result
+
+
 @router.get("/aggressive_keywords_by_day")
 def read_aggressive_keywords_by_day(
     language: str,

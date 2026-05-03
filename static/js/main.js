@@ -115,6 +115,7 @@ $(document).ready(function() {
         });
 
         fetchAndPlotAggressiveness(formData, groupBy);
+        fetchAndPlotAggressivenessByWebsite(formData, groupBy);
     }
 
     function plotEmotionsPercentPeriodChart(data, chartId, groupBy, language) {
