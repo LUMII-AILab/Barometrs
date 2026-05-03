@@ -15,11 +15,11 @@ def export_predicted_comments_to_csv():
         query = session.query(
             models.PredictedComment.text_lang,
             models.PredictedComment.comment_timestamp,
-            models.RawArticle.url,
+            models.Article.url,
             models.PredictedComment.text,
         ).join(
-            models.RawArticle,
-            models.PredictedComment.article_id == models.RawArticle.article_id
+            models.Article,
+            models.PredictedComment.article_id == models.Article.article_id
         )
         results = query.all()
         df = pd.DataFrame(results, columns=[
@@ -58,14 +58,14 @@ def export_raw_comments_to_csv():
     session = SessionLocal()
     try:
         query = session.query(
-            models.RawComment.comment_lang,
-            models.RawComment.region,
-            models.RawComment.timestamp,
-            models.RawArticle.url,
-            models.RawComment.comment_text,
+            models.Comment.comment_lang,
+            models.Comment.region,
+            models.Comment.timestamp,
+            models.Article.url,
+            models.Comment.comment_text,
         ).join(
-            models.RawArticle,
-            models.RawComment.article_id == models.RawArticle.article_id
+            models.Article,
+            models.Comment.article_id == models.Article.article_id
         )
         results = query.all()
         df = pd.DataFrame(results, columns=[

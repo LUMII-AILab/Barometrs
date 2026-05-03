@@ -6,8 +6,8 @@ from pgvector.sqlalchemy import Vector
 
 from .base import Base
 
-class RawComment(Base):
-    __tablename__ = "raw_comments"
+class Comment(Base):
+    __tablename__ = "comments"
 
     id = Column(Integer, primary_key=True)
     region = Column(String)
@@ -17,12 +17,12 @@ class RawComment(Base):
     timestamp = Column(TIMESTAMP, index=True)
     comment_text = Column(String)
     comment_lang = Column(String, index=True)
+    website = Column(String, index=True)
 
-    # Add a relationship to the predicted_comments table
-    predicted_comments = relationship("PredictedComment", back_populates="raw_comments")
+    predicted_comments = relationship("PredictedComment", back_populates="comment")
 
-class RawArticle(Base):
-    __tablename__ = "raw_articles"
+class Article(Base):
+    __tablename__ = "articles"
 
     article_id = Column(Integer, primary_key=True)
     region = Column(String)
@@ -31,18 +31,20 @@ class RawArticle(Base):
     pub_timestamp = Column(TIMESTAMP, index=True)
     embedding = Column(Vector(768))
     url = Column(String)
+    website = Column(String, index=True)
 
-    predicted_comments = relationship("PredictedComment", back_populates="raw_articles")
+    predicted_comments = relationship("PredictedComment", back_populates="article")
 
 class PredictedComment(Base):
     __tablename__ = "predicted_comments"
 
     id = Column(Integer, primary_key=True)
-    comment_id = Column(Integer, ForeignKey('raw_comments.id'), index=True)
+    comment_id = Column(Integer, ForeignKey('comments.id'), index=True)
     comment_timestamp = Column(TIMESTAMP, index=True)
-    article_id = Column(Integer, ForeignKey('raw_articles.article_id'), index=True)
+    article_id = Column(Integer, ForeignKey('articles.article_id'), index=True)
     text = Column(String)
     text_lang = Column(String, index=True)
+    website = Column(String, index=True)
     normal_prediction_json = Column(JSONB)
     normal_prediction_emotion = Column(String, index=True)
     normal_prediction_score = Column(Float)
@@ -50,27 +52,28 @@ class PredictedComment(Base):
     ekman_prediction_emotion = Column(String, index=True)
     ekman_prediction_score = Column(Float)
 
-    # Add a foreign key constraint
-    raw_comments = relationship("RawComment", back_populates="predicted_comments")
-    raw_articles = relationship("RawArticle", back_populates="predicted_comments")
+    comment = relationship("Comment", back_populates="predicted_comments")
+    article = relationship("Article", back_populates="predicted_comments")
 
-class LogRawArticlesImport(Base):
-    __tablename__ = "log_raw_articles_imports"
-
-    import_id = Column(Integer, primary_key=True)
-    file_name = Column(String, index=True)
-    import_timestamp = Column(TIMESTAMP, default=datetime.datetime.now)
-    status = Column(String, index=True)
-    notes = Column(String)
-
-class LogRawCommentsImport(Base):
-    __tablename__ = "log_raw_comments_imports"
+class LogArticlesImport(Base):
+    __tablename__ = "log_articles_imports"
 
     import_id = Column(Integer, primary_key=True)
     file_name = Column(String, index=True)
     import_timestamp = Column(TIMESTAMP, default=datetime.datetime.now)
     status = Column(String, index=True)
     notes = Column(String)
+    website = Column(String)
+
+class LogCommentsImport(Base):
+    __tablename__ = "log_comments_imports"
+
+    import_id = Column(Integer, primary_key=True)
+    file_name = Column(String, index=True)
+    import_timestamp = Column(TIMESTAMP, default=datetime.datetime.now)
+    status = Column(String, index=True)
+    notes = Column(String)
+    website = Column(String)
 
 class EmotionKeywordsByDay(Base):
     __tablename__ = "emotion_keywords_by_day"
@@ -79,6 +82,7 @@ class EmotionKeywordsByDay(Base):
     date = Column(TIMESTAMP, index=True)
     language = Column(String, index=True)
     prediction_type = Column(String, index=True)
+    website = Column(String, index=True)
     keywords_json = Column(JSONB)
 
 class AggressiveKeyword(Base):
@@ -106,9 +110,9 @@ class LemmatizedComment(Base):
     __tablename__ = "lemmatized_comments"
 
     id = Column(Integer, primary_key=True)
-    comment_id = Column(Integer, ForeignKey('raw_comments.id'), unique=True, index=True)
-    lemmas = Column(JSONB)    # list[str] of lemma strings
-    lemma_count = Column(Integer)  # pre-computed for aggregation
+    comment_id = Column(Integer, ForeignKey('comments.id'), unique=True, index=True)
+    lemmas = Column(JSONB)
+    lemma_count = Column(Integer)
 
 class AggressivenessByDay(Base):
     __tablename__ = "aggressiveness_by_day"
@@ -116,12 +120,12 @@ class AggressivenessByDay(Base):
     id = Column(Integer, primary_key=True)
     date = Column(TIMESTAMP, index=True)
     language = Column(String, index=True)
+    website = Column(String, index=True)
     aggressive_word_count = Column(Integer)
     aggressive_word_weight_sum = Column(Float)
     total_word_count = Column(Integer)
-    aggressiveness_ratio = Column(Float)  # aggressive_word_count / total_word_count
-    weighted_aggressiveness_ratio = Column(Float)  # aggressive_word_weight_sum / total_word_count
+    aggressiveness_ratio = Column(Float)
+    weighted_aggressiveness_ratio = Column(Float)
 
 def register_models():
-    # This function does nothing but ensures Python executes the model definitions
     pass

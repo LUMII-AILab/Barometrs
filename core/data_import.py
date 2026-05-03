@@ -7,7 +7,6 @@ import fasttext
 import pandas as pd
 from sqlalchemy.orm import sessionmaker
 
-# import database
 from db import crud_utils, database
 from path_config import data_path, models_path
 import torch
@@ -28,7 +27,6 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # Load the language detection model
 language_detection_model = fasttext.load_model(models_path('lid.176.bin'))
 
-# add type hints
 lvbert_model, lvbert_tokenizer = load_model.get_embedding_model_and_tokenizer('lvbert')
 rubert_model, rubert_tokenizer = load_model.get_embedding_model_and_tokenizer('rubert-base-cased')
 
@@ -45,26 +43,20 @@ def determine_text_language(text_str):
     elif lang_code[0] == '__label__ru':
         return 'ru'
     else:
-        # It seems that usual case for this transliteration from English to Russian
+        # Usual case: transliteration from English to Russian
         return 'other'
 
 
 def get_embedding(model, tokenizer, text):
-    # Move the model to the appropriate device
     model.to(device)
 
-    # Tokenize the input text and move the input tensors to the same device
     encoded_input = tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=512)
     encoded_input = {key: val.to(device) for key, val in encoded_input.items()}
 
-    # Run inference without computing gradients
     with torch.no_grad():
         outputs = model(**encoded_input)
 
-    # Extract the embeddings of the first token ([CLS] token in BERT) from the last hidden state
     embeddings = outputs.last_hidden_state[:, 0, :]
-
-    # Convert the embeddings tensor to a list after squeezing the extra dimension
     return embeddings.squeeze().tolist()
 
 def get_text_embedding_by_language(text, lang):
@@ -78,15 +70,14 @@ def get_text_embedding_by_language(text, lang):
     return embedding
 
 
-def log_import(table_name, base_filename, status, notes):
-    # Rewrite the above code to use the session object
-    if table_name == 'log_raw_articles_imports':
-        crud_utils.create_log_raw_articles_import(session, base_filename, status, notes)
-    elif table_name == 'log_raw_comments_imports':
-        crud_utils.create_log_raw_comments_import(session, base_filename, status, notes)
+def log_import(tracking_table, base_filename, status, notes, website):
+    if tracking_table == 'log_articles_imports':
+        crud_utils.create_log_articles_import(session, base_filename, status, notes, website)
+    elif tracking_table == 'log_comments_imports':
+        crud_utils.create_log_comments_import(session, base_filename, status, notes, website)
 
 
-def process_directory(directory):
+def process_directory(directory, website):
     global processed_article_file_list, processed_comment_file_list
     excluded_files = processed_article_file_list + processed_comment_file_list
     sorted_filenames = sorted(os.listdir(directory))
@@ -95,9 +86,8 @@ def process_directory(directory):
         if filename in excluded_files:
             continue
         if filename.endswith('.txt') or filename.endswith('.txt.gz'):
-            # Process files from 2020-2024
             if any(year in filename for year in years_to_process):
-                process_file(os.path.join(directory, filename))
+                process_file(os.path.join(directory, filename), website)
 
 
 def get_base_filename(file_path):
@@ -119,80 +109,66 @@ def create_df_from_file(file_path, columns):
     return df
 
 
-def process_comment_file(file_path):
-    table_name = 'raw_comments'
-    tracking_table = 'log_raw_comments_imports'
+def process_comment_file(file_path, website):
+    tracking_table = 'log_comments_imports'
     columns = ['region', 'article_id', 'user_nickname', 'encoded_ip', 'timestamp', 'comment_text']
     filename = get_base_filename(file_path)
 
     try:
         df = create_df_from_file(file_path, columns)
 
-        # Convert comment text to string
         df['comment_text'] = df['comment_text'].astype(str)
-
-        # Add language column
         df['comment_lang'] = df['comment_text'].apply(determine_text_language)
+        df['website'] = website
 
-        # Bulk insert data into the database
         crud_utils.bulk_insert_comments(df, session)
 
-        print(f"Data from {file_path} has been inserted into {table_name}")
-        log_import(tracking_table, filename, "Success", "File imported successfully.")
+        print(f"Data from {file_path} has been inserted into comments")
+        log_import(tracking_table, filename, "Success", "File imported successfully.", website)
     except Exception as e:
         session.rollback()
         print(f"Error processing file {file_path}: {e}")
-        log_import(tracking_table, filename, "Failed", str(e))
-
-    return
+        log_import(tracking_table, filename, "Failed", str(e), website)
 
 
-def process_article_file(file_path):
-    table_name = 'raw_articles'
-    tracking_table = 'log_raw_articles_imports'
+def process_article_file(file_path, website):
+    tracking_table = 'log_articles_imports'
     columns = ['region', 'article_id', 'headline', 'pub_timestamp', 'url']
     filename = get_base_filename(file_path)
 
     try:
         df = create_df_from_file(file_path, columns)
 
-        # Add language column
         headline_lang_column = df['headline'].apply(determine_text_language)
         df.insert(3, 'headline_lang', headline_lang_column)
 
-        # Remove articles with duplicate article_id
         df = df.drop_duplicates(subset='article_id')
 
-        # Add embedding column
         df['embedding'] = df['headline'].apply(lambda x: get_text_embedding_by_language(x, determine_text_language(x)))
+        df['website'] = website
 
-        # Insert data into the database
         crud_utils.bulk_insert_articles(df, session)
 
-        # Log the import
-        print(f"Data from {file_path} has been inserted into {table_name}")
-        log_import(tracking_table, filename, "Success", "File imported successfully.")
+        print(f"Data from {file_path} has been inserted into articles")
+        log_import(tracking_table, filename, "Success", "File imported successfully.", website)
     except Exception as e:
         session.rollback()
         print(f"Error processing file {file_path}: {e}")
-        log_import(tracking_table, filename, "Failed", str(e))
-
-    return
+        log_import(tracking_table, filename, "Failed", str(e), website)
 
 
-def process_file(file_path):
-    # print(f"Processing {file_path}")
+def process_file(file_path, website):
     if 'meta' in file_path:
-        process_article_file(file_path)
+        process_article_file(file_path, website)
     else:
-        process_comment_file(file_path)
+        process_comment_file(file_path, website)
 
 # Processing data with CUDA for 2023.01.01.-2024.04.08. took 692 seconds
 if __name__ == '__main__':
     start_time = time.time()
-    process_directory(new_delfi_data)
-    process_directory(old_delfi_data)
-    process_directory(tvnet_data)
-    process_directory(apollo_data)
+    process_directory(new_delfi_data, 'delfi')
+    process_directory(old_delfi_data, 'delfi')
+    process_directory(tvnet_data, 'tvnet')
+    process_directory(apollo_data, 'apollo')
     end_time = time.time()
     print(f"Processing new data took {end_time - start_time} seconds")

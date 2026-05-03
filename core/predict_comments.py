@@ -67,7 +67,8 @@ def process_comments(batch_size=100):
                 comment_timestamp=raw_comment.timestamp,
                 article_id=raw_comment.article_id,
                 text=comment_text,
-                text_lang=raw_comment.comment_lang
+                text_lang=raw_comment.comment_lang,
+                website=raw_comment.website,
             )
 
             if comment_lang == 'lv':

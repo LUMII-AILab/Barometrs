@@ -47,7 +47,7 @@ def get_aggressive_keywords_count_by_day(session: Session, request_date: date, l
         sql = text("""
             SELECT ak.word, ak.language, ak.weight, COUNT(*) AS count
             FROM lemmatized_comments lc
-            JOIN raw_comments rc ON rc.id = lc.comment_id
+            JOIN comments rc ON rc.id = lc.comment_id
             CROSS JOIN LATERAL jsonb_array_elements_text(lc.lemmas) AS lemma
             JOIN aggressive_keywords ak ON ak.word = lemma
             WHERE DATE_TRUNC('day', rc.timestamp) = :request_date
@@ -60,7 +60,7 @@ def get_aggressive_keywords_count_by_day(session: Session, request_date: date, l
         sql = text("""
             SELECT ak.word, ak.language, COUNT(*) AS count
             FROM lemmatized_comments lc
-            JOIN raw_comments rc ON rc.id = lc.comment_id
+            JOIN comments rc ON rc.id = lc.comment_id
             CROSS JOIN LATERAL jsonb_array_elements_text(lc.lemmas) AS lemma
             JOIN aggressive_keywords ak ON ak.word = lemma
             WHERE DATE_TRUNC('day', rc.timestamp) = :request_date

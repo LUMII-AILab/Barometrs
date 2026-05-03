@@ -21,8 +21,8 @@ def build_frequency_map(session, language: str) -> Counter:
     print(f'Building frequency map for language={language}...')
     rows = (
         session.query(models.LemmatizedComment.lemmas)
-        .join(models.RawComment, models.LemmatizedComment.comment_id == models.RawComment.id)
-        .filter(models.RawComment.comment_lang == language)
+        .join(models.Comment, models.LemmatizedComment.comment_id == models.Comment.id)
+        .filter(models.Comment.comment_lang == language)
         .all()
     )
     counter: Counter = Counter()

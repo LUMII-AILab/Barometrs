@@ -34,12 +34,12 @@ def calculate_aggressiveness():
                 session.query(
                     models.LemmatizedComment.lemmas,
                     models.LemmatizedComment.lemma_count,
-                    cast(models.RawComment.timestamp, Date).label('comment_date'),
+                    cast(models.Comment.timestamp, Date).label('comment_date'),
                 )
-                .join(models.RawComment, models.LemmatizedComment.comment_id == models.RawComment.id)
+                .join(models.Comment, models.LemmatizedComment.comment_id == models.Comment.id)
                 .filter(
-                    models.RawComment.comment_lang == lang,
-                    cast(models.RawComment.timestamp, Date) >= '2020-01-01',
+                    models.Comment.comment_lang == lang,
+                    cast(models.Comment.timestamp, Date) >= '2020-01-01',
                 )
                 .all()
             )

@@ -40,13 +40,13 @@ def lemmatize_comments():
     try:
         for lang in SUPPORTED_LANGUAGES:
             total_to_process = (
-                session.query(models.RawComment)
+                session.query(models.Comment)
                 .outerjoin(
                     models.LemmatizedComment,
-                    models.LemmatizedComment.comment_id == models.RawComment.id
+                    models.LemmatizedComment.comment_id == models.Comment.id
                 )
                 .filter(
-                    models.RawComment.comment_lang == lang,
+                    models.Comment.comment_lang == lang,
                     models.LemmatizedComment.comment_id == None,
                 )
                 .count()
@@ -59,17 +59,17 @@ def lemmatize_comments():
             total = 0
             while True:
                 batch = (
-                    session.query(models.RawComment)
+                    session.query(models.Comment)
                     .outerjoin(
                         models.LemmatizedComment,
-                        models.LemmatizedComment.comment_id == models.RawComment.id
+                        models.LemmatizedComment.comment_id == models.Comment.id
                     )
                     .filter(
-                        models.RawComment.comment_lang == lang,
-                        models.RawComment.id > last_id,
+                        models.Comment.comment_lang == lang,
+                        models.Comment.id > last_id,
                         models.LemmatizedComment.comment_id == None,
                     )
-                    .order_by(models.RawComment.id)
+                    .order_by(models.Comment.id)
                     .limit(BATCH_SIZE)
                     .all()
                 )

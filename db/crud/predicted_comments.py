@@ -29,8 +29,8 @@ def get_predicted_comment_allowed_months(db: Session):
 
 def get_predicted_comments(db: Session, offset: int = 0, batch_size: int = 100):
     # Left join to get the raw comment text
-    results = (db.query(models.PredictedComment, models.RawComment)
-            .outerjoin(models.RawComment, models.PredictedComment.comment_id == models.RawComment.id)
+    results = (db.query(models.PredictedComment, models.Comment)
+            .outerjoin(models.Comment, models.PredictedComment.comment_id == models.Comment.id)
             .where(models.PredictedComment.comment_id != None)
             .offset(offset).limit(batch_size).all())
 
@@ -229,13 +229,13 @@ def get_predicted_comments_max_emotion_comments_by_type_and_request_date(db: Ses
         models.PredictedComment.id.label('id'),
         models.PredictedComment.text.label('comment_text'),
         models.PredictedComment.article_id.label('article_id'),
-        models.RawArticle.headline.label('article_title'),
-        models.RawArticle.url.label('article_url'),
+        models.Article.headline.label('article_title'),
+        models.Article.url.label('article_url'),
         models.PredictedComment.text_lang.label('comment_lang'),
     ).outerjoin(
-        models.RawArticle, models.RawArticle.article_id == models.PredictedComment.article_id
+        models.Article, models.Article.article_id == models.PredictedComment.article_id
     ).filter(
-        models.RawArticle.article_id != None,
+        models.Article.article_id != None,
         cast(models.PredictedComment.comment_timestamp, Date) == request_date
     )
 
@@ -296,11 +296,11 @@ def get_predicted_comments_max_emotion_articles_clustered(
     query = db.query(
         models.PredictedComment.id.label('id'),
         models.PredictedComment.text.label('comment_text'),
-        models.RawArticle.article_id.label('id'),
-        models.RawArticle.headline.label('article_title'),
-        models.RawArticle.embedding.label('embedding')
+        models.Article.article_id.label('id'),
+        models.Article.headline.label('article_title'),
+        models.Article.embedding.label('embedding')
     ).outerjoin(
-        models.PredictedComment, models.PredictedComment.article_id == models.RawArticle.article_id
+        models.PredictedComment, models.PredictedComment.article_id == models.Article.article_id
     ).filter(
         models.PredictedComment.id != None,
         func.cast(models.PredictedComment.comment_timestamp, Date) == request_date
@@ -330,12 +330,12 @@ def get_predicted_comments_max_emotion_articles_clustered(
     if lang and lang != 'all' and lang in supported_languages:
         query = query.filter(
             models.PredictedComment.text_lang == lang,
-            models.RawArticle.headline_lang == lang
+            models.Article.headline_lang == lang
         )
     else:
         query = query.filter(
             models.PredictedComment.text_lang.in_(supported_languages),
-            models.RawArticle.headline_lang.in_(supported_languages)
+            models.Article.headline_lang.in_(supported_languages)
         )
 
     # Ensure results are unique
@@ -373,10 +373,10 @@ def get_predicted_comments_max_emotion_articles_by_type_and_date(db: Session, pr
         request_date = min_date
 
     query = db.query(
-        models.RawArticle.article_id.label('id'),
-        models.RawArticle.headline.label('article_title'),
+        models.Article.article_id.label('id'),
+        models.Article.headline.label('article_title'),
     ).outerjoin(
-        models.PredictedComment, models.PredictedComment.article_id == models.RawArticle.article_id
+        models.PredictedComment, models.PredictedComment.article_id == models.Article.article_id
     ).filter(
         models.PredictedComment.id != None,
         func.cast(models.PredictedComment.comment_timestamp, Date) == request_date
