@@ -54,6 +54,7 @@ function plotAggressivenessByWebsiteChart(result, chartId, groupBy) {
                 name: label + ' trend',
                 type: 'line',
                 showSymbol: false,
+                smooth: 0.3,
                 data: data.map((d, i) => [d.date, sma[i]]),
                 itemStyle: { color },
                 lineStyle: { color, type: 'dashed', width: 2.5, opacity: 0.85 }
