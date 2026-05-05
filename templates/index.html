@@ -95,7 +95,7 @@
             <span id="requestDate"><i>Select a data point from any of the plot charts</i></span>
         </div>
 
-        <div id="emotionsDetailSection" class="card detail-card mt-3">
+        <div id="detailSection" class="card detail-card mt-3">
             <div class="card-body">
                 <div class="container-wrapper">
                     <div class="comment-container">
@@ -107,21 +107,14 @@
                         </div>
                         <div id="predictedCommentsTable" class="tabulator-table"></div>
                     </div>
-                    <div class="keyword-container">
+                    <div class="keyword-container" id="emotionKeywordContainer">
                         <div class="mb-3">
                             <h2 class="detail-section-title mb-1">Keywords</h2>
                             <p class="text-muted small mb-0">Keywords are automatically extracted from comments.</p>
                         </div>
                         <div id="emotionKeywordsTable" class="tabulator-table"></div>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="aggressivenessDetailSection" style="display:none;" class="card detail-card mt-3">
-            <div class="card-body">
-                <div class="container-wrapper">
-                    <div class="keyword-container">
+                    <div class="keyword-container" id="aggressiveKeywordContainer" style="display:none;">
                         <div class="mb-3">
                             <h2 class="detail-section-title mb-1">Aggressive Keywords</h2>
                             <p class="text-muted small mb-0">Counts how often each aggressive keyword appears in

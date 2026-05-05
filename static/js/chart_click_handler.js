@@ -1,10 +1,10 @@
 function addRequestPredictedCommentsOnClickToAggressivenessChart(chart) {
-    const languageByTrace = { LV: 'lv', RU: 'ru' };
     const $requestForm = $('#analysisRequestForm');
 
     chart.on('click', function(params) {
         if (!Array.isArray(params.value)) return;
-        const language = languageByTrace[params.seriesName] || 'all';
+        const name = params.seriesName || '';
+        const language = name.startsWith('LV') ? 'lv' : name.startsWith('RU') ? 'ru' : 'all';
         const d = new Date(params.value[0]);
         const date = d.getUTCFullYear() + '-' +
             String(d.getUTCMonth() + 1).padStart(2, '0') + '-' +
@@ -12,6 +12,7 @@ function addRequestPredictedCommentsOnClickToAggressivenessChart(chart) {
         $('#requestDate').html(date);
         $requestForm.find('[name="requestDate"]').val(date);
         $requestForm.find('[name="language"]').val(language);
+        createPrecictedCommentsTable();
         createAggressiveKeywordsTable();
     });
 }
@@ -34,8 +35,6 @@ function addRequestPredictedCommentsOnClickToChart($divElem) {
     }
 
     function afterDateClick() {
-        // createArticlesTable();
-        // createClusteredArticlesTable();
         createPrecictedCommentsTable();
         createEmotionKeywordsTable();
         createAggressiveKeywordsTable();

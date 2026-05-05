@@ -394,22 +394,25 @@ const tabVisibility = {
         '.controls-card': true,
         '.view-controls': true,
         '.details-header': true,
-        '#emotionsDetailSection': true,
-        '#aggressivenessDetailSection': false
+        '#detailSection': true,
+        '#emotionKeywordContainer': true,
+        '#aggressiveKeywordContainer': false
     },
     '#aggressivenessTabPane': {
         '.controls-card': true,
         '.view-controls': false,
         '.details-header': true,
-        '#emotionsDetailSection': false,
-        '#aggressivenessDetailSection': true
+        '#detailSection': true,
+        '#emotionKeywordContainer': false,
+        '#aggressiveKeywordContainer': true
     },
     '#aggressiveKeywordsListTabPane': {
         '.controls-card': false,
         '.view-controls': false,
         '.details-header': false,
-        '#emotionsDetailSection': false,
-        '#aggressivenessDetailSection': false
+        '#detailSection': false,
+        '#emotionKeywordContainer': false,
+        '#aggressiveKeywordContainer': false
     },
 };
 
