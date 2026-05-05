@@ -73,8 +73,14 @@ body {
 
 .detail-card {
     border: none;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, .1);
+    box-shadow: none;
     margin-bottom: 16px;
+    background-color: transparent;
+}
+
+.detail-card .card-body {
+    background-color: transparent;
+    padding: 0;
 }
 
 .detail-section-title {
@@ -195,7 +201,7 @@ body {
     max-width: 50%;
 
     @media (min-width: 1200px) {
-        max-width: 20%;
+        max-width: 30%;
     }
 }
 
