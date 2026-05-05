@@ -229,4 +229,5 @@ function plotAggressivenessChart(lvData, ruData, chartId, groupBy) {
     window.addEventListener('resize', _aggressivenessResizeHandler);
 
     addRequestPredictedCommentsOnClickToAggressivenessChart(_aggressivenessChart);
+    addRequestPredictedCommentsOnClickToAggressivenessChart(_aggressivenessWebsiteChart);
 }
