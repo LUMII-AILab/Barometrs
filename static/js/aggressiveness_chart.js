@@ -94,11 +94,17 @@ function updateAggressivenessChartOverlays() {
         ]);
     });
 
+    const overlaysSeries = { name: '__overlays__', type: 'line', data: [], markArea: { silent: true, data: markAreaData } };
+
     _aggressivenessChart.setOption({
-        series: _aggressivenessData.series.concat([
-            { name: '__overlays__', type: 'line', data: [], markArea: { silent: true, data: markAreaData } }
-        ])
+        series: _aggressivenessData.series.concat([overlaysSeries])
     }, { replaceMerge: ['series'] });
+
+    if (_aggressivenessWebsiteChart && _aggressivenessWebsiteData) {
+        _aggressivenessWebsiteChart.setOption({
+            series: _aggressivenessWebsiteData.series.concat([overlaysSeries])
+        }, { replaceMerge: ['series'] });
+    }
 }
 
 function plotAggressivenessChart(lvData, ruData, chartId, groupBy) {

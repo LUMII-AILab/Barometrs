@@ -1,4 +1,5 @@
 let _aggressivenessWebsiteChart = null;
+let _aggressivenessWebsiteData = null;
 let _aggressivenessWebsiteResizeHandler = null;
 
 const _WEBSITE_COLORS = {
@@ -62,6 +63,8 @@ function plotAggressivenessByWebsiteChart(result, chartId, groupBy) {
         });
     });
 
+    _aggressivenessWebsiteData = { series };
+
     const dom = document.getElementById(chartId);
     if (_aggressivenessWebsiteChart) _aggressivenessWebsiteChart.dispose();
     _aggressivenessWebsiteChart = echarts.init(dom, null, { height: 500 });
@@ -87,7 +90,9 @@ function plotAggressivenessByWebsiteChart(result, chartId, groupBy) {
             name: 'Aggressiveness (%)',
             axisLabel: { formatter: function(v) { return v.toFixed(4); } }
         },
-        series
+        series: series.concat([
+            { name: '__overlays__', type: 'line', data: [], markArea: { silent: true, data: [] } }
+        ])
     });
 
     if (_aggressivenessWebsiteResizeHandler) window.removeEventListener('resize', _aggressivenessWebsiteResizeHandler);
