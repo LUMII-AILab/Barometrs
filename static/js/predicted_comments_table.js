@@ -21,7 +21,6 @@ function createPrecictedCommentsTable() {
                 return;
             }
 
-            // If value contains 'emotion', then it is a group by emotion
             if (value.includes('emotion_separator')) {
                 emotion = value.split('emotion_separator')[0];
                 return "Emotion: " + emotion + "<span style='color:#d00; margin-left:10px;'>(" + count + " comments)</span>";
@@ -45,13 +44,10 @@ function createPrecictedCommentsTable() {
         ],
     });
 
-    // Get group toggle button
     const groupToggle = $('#groupCommentsBy');
 
-    // clear previous click events
     groupToggle.off('click');
 
-    // reset button value and text
     groupToggle.val('emotions');
     groupToggle.text('Group by: Articles');
 
@@ -71,7 +67,6 @@ function createPrecictedCommentsTable() {
             new_text = 'Group by: Articles'
         }
 
-        // Set group toggle button value
         groupToggle.val(new_value);
         groupToggle.text(new_text);
     });
