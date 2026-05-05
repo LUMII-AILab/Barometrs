@@ -117,7 +117,7 @@ function plotAggressivenessChart(lvData, ruData, chartId, groupBy) {
     const lvWeightedSMA = computeSMA(lvData.map(d => d.weighted_aggressiveness_ratio), win);
     const ruWeightedSMA = computeSMA(ruData.map(d => d.weighted_aggressiveness_ratio), win);
 
-const series = [
+    const series = [
         {
             name: 'LV actual',
             type: 'line',
