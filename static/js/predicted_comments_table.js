@@ -1,4 +1,4 @@
-function createPrecictedCommentsTable() {
+function createPredictedCommentsTable() {
     var table = new Tabulator("#predictedCommentsTable", {
         ajaxURL: "/predicted_comments_emotion_comments",
         ajaxParams: function(){

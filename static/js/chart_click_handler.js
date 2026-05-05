@@ -12,7 +12,7 @@ function addRequestPredictedCommentsOnClickToAggressivenessChart(chart) {
         $('#requestDate').html(date);
         $requestForm.find('[name="requestDate"]').val(date);
         $requestForm.find('[name="language"]').val(language);
-        createPrecictedCommentsTable();
+        createPredictedCommentsTable();
         createAggressiveKeywordsTable();
     });
 }
@@ -35,7 +35,7 @@ function addRequestPredictedCommentsOnClickToChart($divElem) {
     }
 
     function afterDateClick() {
-        createPrecictedCommentsTable();
+        createPredictedCommentsTable();
         createEmotionKeywordsTable();
         createAggressiveKeywordsTable();
     }
