@@ -175,7 +175,7 @@ def parse_delfi_v3_articles(file_path):
     columns = ['region', 'article_id', 'headline', 'pub_timestamp', 'url']
     filename = get_base_filename(file_path)
 
-    if filename in processed_article_file_list:
+    if filename in crud_utils.get_processed_article_files(session, 'delfi'):
         print(f"Skipping already processed file: {filename}")
         return
 
@@ -183,7 +183,6 @@ def parse_delfi_v3_articles(file_path):
         chunks = pd.read_csv(file_path, sep='\t', header=None, names=columns,
                              on_bad_lines='skip', quoting=csv.QUOTE_NONE, chunksize=50_000)
         for chunk in chunks:
-            chunk = chunk.drop_duplicates(subset='article_id')
             chunk['headline_lang'] = chunk['headline'].apply(determine_text_language)
             chunk['embedding'] = chunk.apply(lambda row: get_text_embedding_by_language(row['headline'], row['headline_lang']), axis=1)
             chunk['website'] = 'delfi'
@@ -202,7 +201,7 @@ def parse_delfi_v3_comments(file_path):
     columns = ['region', 'article_id', 'user_nickname', 'encoded_ip', 'timestamp', 'comment_text']
     filename = get_base_filename(file_path)
 
-    if filename in processed_comment_file_list:
+    if filename in crud_utils.get_processed_comment_files(session, 'delfi'):
         print(f"Skipping already processed file: {filename}")
         return
 

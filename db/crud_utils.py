@@ -91,8 +91,14 @@ def create_log_articles_import(db: Session, file_name: str, status: str, notes: 
 def check_log_articles_import_exists(db: Session, file_name: str):
     return db.query(models.LogArticlesImport).filter(models.LogArticlesImport.file_name == file_name).first() is not None
 
-def get_processed_article_files(db: Session) -> list[str]:
-    return [log.file_name for log in db.query(models.LogArticlesImport).where(models.LogArticlesImport.status == 'Success').all()]
+def get_processed_article_files(db: Session, website: str = None) -> list[str]:
+    query = db.query(models.LogArticlesImport).where(models.LogArticlesImport.status == 'Success')
+    if website:
+        query = query.where(models.LogArticlesImport.website == website)
+    return [log.file_name for log in query.all()]
 
-def get_processed_comment_files(db: Session) -> list[str]:
-    return [log.file_name for log in db.query(models.LogCommentsImport).where(models.LogCommentsImport.status == 'Success').all()]
+def get_processed_comment_files(db: Session, website: str = None) -> list[str]:
+    query = db.query(models.LogCommentsImport).where(models.LogCommentsImport.status == 'Success')
+    if website:
+        query = query.where(models.LogCommentsImport.website == website)
+    return [log.file_name for log in query.all()]
