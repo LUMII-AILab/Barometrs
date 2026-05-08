@@ -35,16 +35,21 @@ _CYRILLIC = re.compile(r'[Ѐ-ӿ]')
 _LATIN    = re.compile(r'[A-Za-zĀ-žā-ž]')
 _lingua_detector = LanguageDetectorBuilder.from_languages(Language.LATVIAN, Language.RUSSIAN).build()
 
-def determine_text_language_script(text_str):
-    return 'ru' if len(_CYRILLIC.findall(text_str)) > len(_LATIN.findall(text_str)) else 'lv'
-
 def determine_text_language_lingua(text_str):
     result = _lingua_detector.detect_language_of(text_str)
-    if result == Language.RUSSIAN:
-        return 'ru'
-    return 'lv'
+    return 'ru' if result == Language.RUSSIAN else 'lv'
 
 def determine_text_language(text_str):
+    cyrillic = len(_CYRILLIC.findall(text_str))
+    latin    = len(_LATIN.findall(text_str))
+    total    = cyrillic + latin
+    if total == 0:
+        return 'lv'
+    ratio = cyrillic / total
+    if ratio > 0.85:
+        return 'ru'
+    if ratio < 0.15:
+        return 'lv'
     return determine_text_language_lingua(text_str)
 
 
