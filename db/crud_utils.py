@@ -1,5 +1,6 @@
 import pandas as pd
-from sqlalchemy import insert, or_
+from sqlalchemy import or_
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 from . import models
 
@@ -9,22 +10,9 @@ def create_article(db: Session, article: models.Article):
     db.refresh(article)
     return article
 
-def remove_existing_article_ids(df: pd.DataFrame, db: Session) -> pd.DataFrame:
-    article_ids = df['article_id'].tolist()
-    existing_ids = db.query(models.Article.article_id).filter(models.Article.article_id.in_(article_ids)).all()
-    existing_ids = {id[0] for id in existing_ids}
-    df_filtered = df[~df['article_id'].isin(existing_ids)]
-    return df_filtered
-
 def bulk_insert_articles(df: pd.DataFrame, db: Session):
-    df_to_insert = remove_existing_article_ids(df, db)
-
-    if df_to_insert.empty:
-        print("No new articles to insert.")
-        return
-
-    articles_data = df_to_insert.to_dict(orient='records')
-    db.execute(insert(models.Article), articles_data)
+    data = df.to_dict(orient='records')
+    db.execute(insert(models.Article).on_conflict_do_nothing(index_elements=['article_id']), data)
     db.commit()
 
 def bulk_insert_comments(df: pd.DataFrame, db: Session):
