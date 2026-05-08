@@ -1,5 +1,5 @@
 import pandas as pd
-from sqlalchemy import or_
+from sqlalchemy import insert, or_
 from sqlalchemy.orm import Session
 from . import models
 
@@ -24,12 +24,12 @@ def bulk_insert_articles(df: pd.DataFrame, db: Session):
         return
 
     articles_data = df_to_insert.to_dict(orient='records')
-    db.bulk_insert_mappings(models.Article, articles_data)
+    db.execute(insert(models.Article), articles_data)
     db.commit()
 
 def bulk_insert_comments(df: pd.DataFrame, db: Session):
     comments_data = df.to_dict(orient='records')
-    db.bulk_insert_mappings(models.Comment, comments_data)
+    db.execute(insert(models.Comment), comments_data)
     db.commit()
 
 def get_article(db: Session, article_id: int):
