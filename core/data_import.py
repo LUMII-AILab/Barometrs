@@ -180,17 +180,14 @@ def parse_delfi_v3_articles(file_path):
         return
 
     try:
-        df = create_df_from_file(file_path, columns)
-
-        headline_lang_column = df['headline'].apply(determine_text_language)
-        df.insert(3, 'headline_lang', headline_lang_column)
-
-        df = df.drop_duplicates(subset='article_id')
-
-        df['embedding'] = df['headline'].apply(lambda x: get_text_embedding_by_language(x, determine_text_language(x)))
-        df['website'] = 'delfi'
-
-        crud_utils.bulk_insert_articles(df, session)
+        chunks = pd.read_csv(file_path, sep='\t', header=None, names=columns,
+                             on_bad_lines='skip', quoting=csv.QUOTE_NONE, chunksize=50_000)
+        for chunk in chunks:
+            chunk = chunk.drop_duplicates(subset='article_id')
+            chunk['headline_lang'] = chunk['headline'].apply(determine_text_language)
+            chunk['embedding'] = chunk.apply(lambda row: get_text_embedding_by_language(row['headline'], row['headline_lang']), axis=1)
+            chunk['website'] = 'delfi'
+            crud_utils.bulk_insert_articles(chunk, session)
 
         print(f"Data from {file_path} has been inserted into articles")
         log_import(tracking_table, filename, "Success", "File imported successfully.", 'delfi')
@@ -210,13 +207,13 @@ def parse_delfi_v3_comments(file_path):
         return
 
     try:
-        df = create_df_from_file(file_path, columns)
-
-        df['comment_text'] = df['comment_text'].astype(str)
-        df['comment_lang'] = df['comment_text'].apply(determine_text_language)
-        df['website'] = 'delfi'
-
-        crud_utils.bulk_insert_comments(df, session)
+        chunks = pd.read_csv(file_path, sep='\t', header=None, names=columns,
+                             on_bad_lines='skip', quoting=csv.QUOTE_NONE, chunksize=50_000)
+        for chunk in chunks:
+            chunk['comment_text'] = chunk['comment_text'].astype(str)
+            chunk['comment_lang'] = chunk['comment_text'].apply(determine_text_language)
+            chunk['website'] = 'delfi'
+            crud_utils.bulk_insert_comments(chunk, session)
 
         print(f"Data from {file_path} has been inserted into comments")
         log_import(tracking_table, filename, "Success", "File imported successfully.", 'delfi')
