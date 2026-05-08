@@ -163,11 +163,69 @@ def process_file(file_path, website):
     else:
         process_comment_file(file_path, website)
 
+
+def parse_delfi_v3_articles(file_path):
+    tracking_table = 'log_articles_imports'
+    columns = ['region', 'article_id', 'headline', 'pub_timestamp', 'url']
+    filename = get_base_filename(file_path)
+
+    if filename in processed_article_file_list:
+        print(f"Skipping already processed file: {filename}")
+        return
+
+    try:
+        df = create_df_from_file(file_path, columns)
+
+        headline_lang_column = df['headline'].apply(determine_text_language)
+        df.insert(3, 'headline_lang', headline_lang_column)
+
+        df = df.drop_duplicates(subset='article_id')
+
+        df['embedding'] = df['headline'].apply(lambda x: get_text_embedding_by_language(x, determine_text_language(x)))
+        df['website'] = 'delfi'
+
+        crud_utils.bulk_insert_articles(df, session)
+
+        print(f"Data from {file_path} has been inserted into articles")
+        log_import(tracking_table, filename, "Success", "File imported successfully.", 'delfi')
+    except Exception as e:
+        session.rollback()
+        print(f"Error processing file {file_path}: {e}")
+        log_import(tracking_table, filename, "Failed", str(e), 'delfi')
+
+
+def parse_delfi_v3_comments(file_path):
+    tracking_table = 'log_comments_imports'
+    columns = ['region', 'article_id', 'user_nickname', 'encoded_ip', 'timestamp', 'comment_text']
+    filename = get_base_filename(file_path)
+
+    if filename in processed_comment_file_list:
+        print(f"Skipping already processed file: {filename}")
+        return
+
+    try:
+        df = create_df_from_file(file_path, columns)
+
+        df['comment_text'] = df['comment_text'].astype(str)
+        df['comment_lang'] = df['comment_text'].apply(determine_text_language)
+        df['website'] = 'delfi'
+
+        crud_utils.bulk_insert_comments(df, session)
+
+        print(f"Data from {file_path} has been inserted into comments")
+        log_import(tracking_table, filename, "Success", "File imported successfully.", 'delfi')
+    except Exception as e:
+        session.rollback()
+        print(f"Error processing file {file_path}: {e}")
+        log_import(tracking_table, filename, "Failed", str(e), 'delfi')
+
+
 # Processing data with CUDA for 2023.01.01.-2024.04.08. took 692 seconds
 if __name__ == '__main__':
     start_time = time.time()
-    process_directory(new_delfi_data, 'delfi')
-    process_directory(old_delfi_data, 'delfi')
+    delfi_v3 = data_path('v3/delfi')
+    parse_delfi_v3_articles(os.path.join(delfi_v3, 'articles-meta.txt'))
+    parse_delfi_v3_comments(os.path.join(delfi_v3, 'comments-meta.txt'))
     process_directory(tvnet_data, 'tvnet')
     process_directory(apollo_data, 'apollo')
     end_time = time.time()
