@@ -4,8 +4,11 @@ import os
 import re
 import time
 
+import math
+
 import pandas as pd
 from lingua import Language, LanguageDetectorBuilder
+from tqdm import tqdm
 from sqlalchemy.orm import sessionmaker
 
 from db import crud_utils, database
@@ -180,9 +183,11 @@ def parse_delfi_v3_articles(file_path):
         return
 
     try:
+        total_lines = sum(1 for _ in open(file_path, encoding='utf-8'))
+        total_chunks = math.ceil(total_lines / 50_000)
         chunks = pd.read_csv(file_path, sep='\t', header=None, names=columns,
                              on_bad_lines='skip', quoting=csv.QUOTE_NONE, chunksize=50_000)
-        for chunk in chunks:
+        for chunk in tqdm(chunks, total=total_chunks, desc='Articles', unit='chunk'):
             chunk['headline_lang'] = chunk['headline'].apply(determine_text_language)
             chunk['embedding'] = chunk.apply(lambda row: get_text_embedding_by_language(row['headline'], row['headline_lang']), axis=1)
             chunk['website'] = 'delfi'
@@ -206,9 +211,11 @@ def parse_delfi_v3_comments(file_path):
         return
 
     try:
+        total_lines = sum(1 for _ in open(file_path, encoding='utf-8'))
+        total_chunks = math.ceil(total_lines / 50_000)
         chunks = pd.read_csv(file_path, sep='\t', header=None, names=columns,
                              on_bad_lines='skip', quoting=csv.QUOTE_NONE, chunksize=50_000)
-        for chunk in chunks:
+        for chunk in tqdm(chunks, total=total_chunks, desc='Comments', unit='chunk'):
             chunk['comment_text'] = chunk['comment_text'].astype(str)
             chunk['comment_lang'] = chunk['comment_text'].apply(determine_text_language)
             chunk['website'] = 'delfi'
