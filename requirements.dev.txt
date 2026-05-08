@@ -18,3 +18,4 @@ jupyter
 seaborn
 samplics
 stanza
+lingua-language-detector

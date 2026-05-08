@@ -1,14 +1,15 @@
 import csv
 import gzip
 import os
+import re
 import time
 
-import fasttext
 import pandas as pd
+from lingua import Language, LanguageDetectorBuilder
 from sqlalchemy.orm import sessionmaker
 
 from db import crud_utils, database
-from path_config import data_path, models_path
+from path_config import data_path
 import torch
 from core import load_model
 
@@ -24,27 +25,27 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=database.eng
 session = SessionLocal()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Load the language detection model
-language_detection_model = fasttext.load_model(models_path('lid.176.bin'))
-
 lvbert_model, lvbert_tokenizer = load_model.get_embedding_model_and_tokenizer('lvbert')
 rubert_model, rubert_tokenizer = load_model.get_embedding_model_and_tokenizer('rubert-base-cased')
 
 processed_article_file_list = crud_utils.get_processed_article_files(session)
 processed_comment_file_list = crud_utils.get_processed_comment_files(session)
 
-def determine_text_language(text_str):
-    lang_code, probability = language_detection_model.predict(text_str.replace('\n', ' '), k=1)
+_CYRILLIC = re.compile(r'[Ѐ-ӿ]')
+_LATIN    = re.compile(r'[A-Za-zĀ-žā-ž]')
+_lingua_detector = LanguageDetectorBuilder.from_languages(Language.LATVIAN, Language.RUSSIAN).build()
 
-    if lang_code[0] == '__label__lv':
-        return 'lv'
-    elif lang_code[0] == '__label__en':
-        return 'en'
-    elif lang_code[0] == '__label__ru':
+def determine_text_language_script(text_str):
+    return 'ru' if len(_CYRILLIC.findall(text_str)) > len(_LATIN.findall(text_str)) else 'lv'
+
+def determine_text_language_lingua(text_str):
+    result = _lingua_detector.detect_language_of(text_str)
+    if result == Language.RUSSIAN:
         return 'ru'
-    else:
-        # Usual case: transliteration from English to Russian
-        return 'other'
+    return 'lv'
+
+def determine_text_language(text_str):
+    return determine_text_language_lingua(text_str)
 
 
 def get_embedding(model, tokenizer, text):
