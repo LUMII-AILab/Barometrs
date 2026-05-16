@@ -15,15 +15,6 @@ def process_predictions(predictions):
 
     return emotion_dict, max_emotion, max_emotion_score
 
-def add_predictions(predicted_comment, ekman_model, text):
-    ekman_prediction_result = ekman_model(text)
-    (predicted_comment.ekman_prediction_json,
-     predicted_comment.ekman_prediction_emotion,
-     predicted_comment.ekman_prediction_score) = process_predictions(ekman_prediction_result)
-
-    return predicted_comment
-
-
 def process_comments(batch_size=100):
     # Get total number of comments
     unpredicted_comments_count = crud_utils.get_unprecited_comment_count(session)
@@ -59,15 +50,15 @@ def process_comments(batch_size=100):
             )
 
             if comment_lang == 'lv':
-                predicted_comment = add_predictions(predicted_comment,
-                                                    lvbert_lv_go_emotion_ekman_pipeline,
-                                                    comment_text)
+                ekman_model = lvbert_lv_go_emotion_ekman_pipeline
             elif comment_lang == 'ru':
-                predicted_comment = add_predictions(predicted_comment,
-                                                    rubert_ru_go_emotion_ekman_pipeline,
-                                                    comment_text)
+                ekman_model = rubert_ru_go_emotion_ekman_pipeline
             else:
                 continue
+
+            (predicted_comment.ekman_prediction_json,
+             predicted_comment.ekman_prediction_emotion,
+             predicted_comment.ekman_prediction_score) = process_predictions(ekman_model(comment_text))
 
             pc_crud.create_predicted_comment(session, predicted_comment)
             processed_comment_count += 1
