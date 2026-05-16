@@ -37,22 +37,20 @@ processed_comment_file_list = crud_utils.get_processed_comment_files(session)
 _CYRILLIC = re.compile(r'[Ѐ-ӿ]')
 _LATIN    = re.compile(r'[A-Za-zĀ-žā-ž]')
 _lingua_detector = LanguageDetectorBuilder.from_languages(Language.LATVIAN, Language.RUSSIAN).build()
+_REGION_LANG = {'rus': 'ru', 'lat': 'lv'}
 
 def determine_text_language_lingua(text_str):
     result = _lingua_detector.detect_language_of(text_str)
     return 'ru' if result == Language.RUSSIAN else 'lv'
 
-def determine_text_language(text_str):
+def determine_text_language(text_str, region=None):
     cyrillic = len(_CYRILLIC.findall(text_str))
     latin    = len(_LATIN.findall(text_str))
     total    = cyrillic + latin
     if total == 0:
-        return 'lv'
-    ratio = cyrillic / total
-    if ratio > 0.85:
+        return _REGION_LANG.get(region, 'lv')
+    if cyrillic / total > 0.85:
         return 'ru'
-    if ratio < 0.15:
-        return 'lv'
     return determine_text_language_lingua(text_str)
 
 
@@ -127,7 +125,7 @@ def process_comment_file(file_path, website):
         df = create_df_from_file(file_path, columns)
 
         df['comment_text'] = df['comment_text'].astype(str)
-        df['comment_lang'] = df['comment_text'].apply(determine_text_language)
+        df['comment_lang'] = df.apply(lambda row: determine_text_language(row['comment_text'], row['region']), axis=1)
         df['website'] = website
 
         crud_utils.bulk_insert_comments(df, session)
@@ -148,12 +146,12 @@ def process_article_file(file_path, website):
     try:
         df = create_df_from_file(file_path, columns)
 
-        headline_lang_column = df['headline'].apply(determine_text_language)
+        headline_lang_column = df.apply(lambda row: determine_text_language(row['headline'], row['region']), axis=1)
         df.insert(3, 'headline_lang', headline_lang_column)
 
         df = df.drop_duplicates(subset='article_id')
 
-        df['embedding'] = df['headline'].apply(lambda x: get_text_embedding_by_language(x, determine_text_language(x)))
+        df['embedding'] = df.apply(lambda row: get_text_embedding_by_language(row['headline'], row['headline_lang']), axis=1)
         df['website'] = website
 
         crud_utils.bulk_insert_articles(df, session)
@@ -188,7 +186,7 @@ def parse_delfi_v3_articles(file_path):
         chunks = pd.read_csv(file_path, sep='\t', header=None, names=columns,
                              on_bad_lines='skip', quoting=csv.QUOTE_NONE, chunksize=50_000)
         for chunk in tqdm(chunks, total=total_chunks, desc='Articles', unit='chunk'):
-            chunk['headline_lang'] = chunk['headline'].apply(determine_text_language)
+            chunk['headline_lang'] = chunk.apply(lambda row: determine_text_language(row['headline'], row['region']), axis=1)
             chunk['embedding'] = chunk.apply(lambda row: get_text_embedding_by_language(row['headline'], row['headline_lang']), axis=1)
             chunk['website'] = 'delfi'
             crud_utils.bulk_insert_articles(chunk, session)
@@ -217,7 +215,7 @@ def parse_delfi_v3_comments(file_path):
                              on_bad_lines='skip', quoting=csv.QUOTE_NONE, chunksize=50_000)
         for chunk in tqdm(chunks, total=total_chunks, desc='Comments', unit='chunk'):
             chunk['comment_text'] = chunk['comment_text'].astype(str)
-            chunk['comment_lang'] = chunk['comment_text'].apply(determine_text_language)
+            chunk['comment_lang'] = chunk.apply(lambda row: determine_text_language(row['comment_text'], row['region']), axis=1)
             chunk['website'] = 'delfi'
             crud_utils.bulk_insert_comments(chunk, session)
 
