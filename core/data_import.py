@@ -51,6 +51,9 @@ def determine_text_language(text_str, region=None):
         return _REGION_LANG.get(region, 'lv')
     if cyrillic / total > 0.85:
         return 'ru'
+    # FastText and Lingua fail on transliterated text - for RU region assume latin text is actually Russian
+    if region == 'rus':
+        return 'ru'
     return determine_text_language_lingua(text_str)
 
 
