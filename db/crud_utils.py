@@ -49,7 +49,7 @@ def get_unprecited_comment_count(db: Session):
     return (db.query(models.Comment)
     .filter(
         or_(models.Comment.comment_lang == 'lv', models.Comment.comment_lang == 'ru'),
-        models.Comment.predicted_comments == None,
+        models.Comment.predicted_comments.is_(None),
         article_exists_subquery
     ).count())
 
@@ -60,7 +60,7 @@ def get_raw_unpredicted_comments_by_batch(db: Session, last_id: int = 0, batch_s
 
     return db.query(models.Comment).filter(
         or_(models.Comment.comment_lang == 'lv', models.Comment.comment_lang == 'ru'),
-        models.Comment.predicted_comments == None,
+        models.Comment.predicted_comments.is_(None),
         models.Comment.id > last_id,
         article_exists_subquery
     ).order_by(models.Comment.id).limit(batch_size).all()
