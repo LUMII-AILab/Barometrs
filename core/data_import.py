@@ -5,16 +5,15 @@ import re
 import time
 
 import math
-
 import pandas as pd
+import torch
 from lingua import Language, LanguageDetectorBuilder
-from tqdm import tqdm
 from sqlalchemy.orm import sessionmaker
+from tqdm import tqdm
 
+from core import load_model
 from db import crud_utils, database
 from path_config import data_path
-import torch
-from core import load_model
 
 # Database connection setup
 new_delfi_data = data_path('delfi-new')
@@ -22,6 +21,7 @@ old_delfi_data = data_path('delfi')
 apollo_data = data_path('apollo')
 tvnet_data = data_path('tvnet')
 years_to_process = ['2020', '2021', '2022', '2023', '2024']
+CHUNK_SIZE = 1_000_000
 
 # Session placeholder
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=database.engine)
@@ -185,9 +185,9 @@ def parse_delfi_v3_articles(file_path):
 
     try:
         total_lines = sum(1 for _ in open(file_path, encoding='utf-8'))
-        total_chunks = math.ceil(total_lines / 50_000)
+        total_chunks = math.ceil(total_lines / CHUNK_SIZE)
         chunks = pd.read_csv(file_path, sep='\t', header=None, names=columns,
-                             on_bad_lines='skip', quoting=csv.QUOTE_NONE, chunksize=50_000)
+                             on_bad_lines='skip', quoting=csv.QUOTE_NONE, chunksize=CHUNK_SIZE)
         for chunk in tqdm(chunks, total=total_chunks, desc='Articles', unit='chunk'):
             chunk['headline_lang'] = chunk.apply(lambda row: determine_text_language(row['headline'], row['region']), axis=1)
             chunk['embedding'] = chunk.apply(lambda row: get_text_embedding_by_language(row['headline'], row['headline_lang']), axis=1)
@@ -213,9 +213,9 @@ def parse_delfi_v3_comments(file_path):
 
     try:
         total_lines = sum(1 for _ in open(file_path, encoding='utf-8'))
-        total_chunks = math.ceil(total_lines / 50_000)
+        total_chunks = math.ceil(total_lines / CHUNK_SIZE)
         chunks = pd.read_csv(file_path, sep='\t', header=None, names=columns,
-                             on_bad_lines='skip', quoting=csv.QUOTE_NONE, chunksize=50_000)
+                             on_bad_lines='skip', quoting=csv.QUOTE_NONE, chunksize=CHUNK_SIZE)
         for chunk in tqdm(chunks, total=total_chunks, desc='Comments', unit='chunk'):
             chunk['comment_text'] = chunk['comment_text'].astype(str)
             chunk['comment_lang'] = chunk.apply(lambda row: determine_text_language(row['comment_text'], row['region']), axis=1)
