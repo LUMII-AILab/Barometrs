@@ -7,7 +7,6 @@ import time
 import math
 import pandas as pd
 import torch
-from lingua import Language, LanguageDetectorBuilder
 from sqlalchemy.orm import sessionmaker
 from tqdm import tqdm
 
@@ -21,7 +20,7 @@ old_delfi_data = data_path('delfi')
 apollo_data = data_path('apollo')
 tvnet_data = data_path('tvnet')
 years_to_process = ['2020', '2021', '2022', '2023', '2024']
-CHUNK_SIZE = 1_000_000
+CHUNK_SIZE = 200_000
 
 # Session placeholder
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=database.engine)
@@ -36,12 +35,7 @@ processed_comment_file_list = crud_utils.get_processed_comment_files(session)
 
 _CYRILLIC = re.compile(r'[Ѐ-ӿ]')
 _LATIN    = re.compile(r'[A-Za-zĀ-žā-ž]')
-_lingua_detector = LanguageDetectorBuilder.from_languages(Language.LATVIAN, Language.RUSSIAN).build()
 _REGION_LANG = {'rus': 'ru', 'lat': 'lv'}
-
-def determine_text_language_lingua(text_str):
-    result = _lingua_detector.detect_language_of(text_str)
-    return 'ru' if result == Language.RUSSIAN else 'lv'
 
 def determine_text_language(text_str, region=None):
     cyrillic = len(_CYRILLIC.findall(text_str))
@@ -49,12 +43,7 @@ def determine_text_language(text_str, region=None):
     total    = cyrillic + latin
     if total == 0:
         return _REGION_LANG.get(region, 'lv')
-    if cyrillic / total > 0.85:
-        return 'ru'
-    # FastText and Lingua fail on transliterated text - for RU region assume latin text is actually Russian
-    if region == 'rus':
-        return 'ru'
-    return determine_text_language_lingua(text_str)
+    return 'ru' if cyrillic / total > 0.85 else _REGION_LANG.get(region, 'lv')
 
 
 def get_embedding(model, tokenizer, text):
