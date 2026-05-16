@@ -20,7 +20,7 @@ old_delfi_data = data_path('delfi')
 apollo_data = data_path('apollo')
 tvnet_data = data_path('tvnet')
 years_to_process = ['2020', '2021', '2022', '2023', '2024']
-CHUNK_SIZE = 200_000
+CHUNK_SIZE = 100_000
 
 # Session placeholder
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=database.engine)
