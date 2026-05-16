@@ -15,14 +15,7 @@ def process_predictions(predictions):
 
     return emotion_dict, max_emotion, max_emotion_score
 
-def add_predictions(predicted_comment, normal_model, ekman_model, text):
-    # Process prediction if model is provided
-    if normal_model is not None:
-        normal_prediction_result = normal_model(text)
-        (predicted_comment.normal_prediction_json,
-         predicted_comment.normal_prediction_emotion,
-         predicted_comment.normal_prediction_score) = process_predictions(normal_prediction_result)
-
+def add_predictions(predicted_comment, ekman_model, text):
     ekman_prediction_result = ekman_model(text)
     (predicted_comment.ekman_prediction_json,
      predicted_comment.ekman_prediction_emotion,
@@ -36,12 +29,6 @@ def process_comments(batch_size=100):
     unpredicted_comments_count = crud_utils.get_unprecited_comment_count(session)
     print(f'Total comment count: {unpredicted_comments_count}')
     processed_comment_count = 0
-
-    # 6 emotions based on Ekman will be supported from now on
-    # uncomment the lines below to use the old models
-
-    # lvbert_lv_go_emotion_pipeline = load_model.get_pipeline_for_model('lvbert-lv-go-emotions')
-    # rubert_ru_go_emotion_pipeline = load_model.get_pipeline_for_model('rubert-base-cased-ru-go-emotions')
 
     lvbert_lv_go_emotion_ekman_pipeline = load_model.get_pipeline_for_model('lvbert-lv-emotions-ekman')
     rubert_ru_go_emotion_ekman_pipeline = load_model.get_pipeline_for_model('rubert-base-cased-ru-go-emotions-ekman')
@@ -73,12 +60,10 @@ def process_comments(batch_size=100):
 
             if comment_lang == 'lv':
                 predicted_comment = add_predictions(predicted_comment,
-                                                    None,
                                                     lvbert_lv_go_emotion_ekman_pipeline,
                                                     comment_text)
             elif comment_lang == 'ru':
                 predicted_comment = add_predictions(predicted_comment,
-                                                    None,
                                                     rubert_ru_go_emotion_ekman_pipeline,
                                                     comment_text)
             else:
