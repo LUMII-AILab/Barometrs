@@ -53,6 +53,39 @@ def get_unprecited_comment_count(db: Session):
         article_exists_subquery
     ).count())
 
+def get_unpredicted_comment_count_by_lang(db: Session, lang: str, website: str = None):
+    article_exists_subquery = db.query(models.Article.article_id).filter(
+        models.Article.article_id == models.Comment.article_id
+    ).exists()
+
+    query = db.query(models.Comment).filter(
+        models.Comment.comment_lang == lang,
+        ~models.Comment.predicted_comments.any(),
+        article_exists_subquery
+    )
+
+    if website:
+        query = query.filter(models.Comment.website == website)
+
+    return query.count()
+
+def get_unpredicted_comments_batch_by_lang(db: Session, lang: str, last_id: int, batch_size: int, website: str = None):
+    article_exists_subquery = db.query(models.Article.article_id).filter(
+        models.Article.article_id == models.Comment.article_id
+    ).exists()
+
+    query = db.query(models.Comment).filter(
+        models.Comment.comment_lang == lang,
+        models.Comment.id > last_id,
+        ~models.Comment.predicted_comments.any(),
+        article_exists_subquery
+    )
+
+    if website:
+        query = query.filter(models.Comment.website == website)
+
+    return query.order_by(models.Comment.id).limit(batch_size).all()
+
 def get_raw_unpredicted_comments_by_batch(db: Session, last_id: int = 0, batch_size: int = 100):
     article_exists_subquery = db.query(models.Article.article_id).filter(
         models.Article.article_id == models.Comment.article_id

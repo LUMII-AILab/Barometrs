@@ -1,11 +1,14 @@
 import time
+from tqdm import tqdm
 from sqlalchemy.orm import sessionmaker
 from db import models, crud_utils, database
-from db.crud import predicted_comments as pc_crud
 from core import load_model
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=database.engine)
 session = SessionLocal()
+
+CHUNK_SIZE = 100_000
+PIPELINE_BATCH_SIZE = 64
 
 def process_predictions(predictions):
     flat_predictions = [item for sublist in predictions for item in sublist]
@@ -15,67 +18,58 @@ def process_predictions(predictions):
 
     return emotion_dict, max_emotion, max_emotion_score
 
-def process_comments(batch_size=100):
-    # Get total number of comments
-    unpredicted_comments_count = crud_utils.get_unprecited_comment_count(session)
-    print(f'Total comment count: {unpredicted_comments_count}')
-    processed_comment_count = 0
+def process_language(pipeline, lang, website=None):
+    total = crud_utils.get_unpredicted_comment_count_by_lang(session, lang, website)
+    if total == 0:
+        print(f'[{lang}] No unpredicted comments.')
+        return 0
 
-    lvbert_lv_go_emotion_ekman_pipeline = load_model.get_pipeline_for_model('lvbert-lv-emotions-ekman')
-    rubert_ru_go_emotion_ekman_pipeline = load_model.get_pipeline_for_model('rubert-base-cased-ru-go-emotions-ekman')
-
-    # Paginate through raw_comments
     last_id = 0
-    while True:
-        start_time = time.time()
-        raw_comments = crud_utils.get_raw_unpredicted_comments_by_batch(session, last_id, batch_size)
-        if not raw_comments:
-            break
+    processed = 0
 
-        # Predict emotions
-        for raw_comment in raw_comments:
-            comment_text = raw_comment.comment_text
-            comment_lang = raw_comment.comment_lang
+    with tqdm(total=total, desc=f'[{lang}]', unit='comment') as progress:
+        while True:
+            batch = crud_utils.get_unpredicted_comments_batch_by_lang(session, lang, last_id, CHUNK_SIZE, website)
+            if not batch:
+                break
 
-            if not comment_text or len(comment_text) == 0:
-                continue
+            texts = [c.comment_text for c in batch]
+            results = pipeline(texts, batch_size=PIPELINE_BATCH_SIZE, truncation=True)
 
-            predicted_comment = models.PredictedComment(
-                comment_id=raw_comment.id,
-                comment_timestamp=raw_comment.timestamp,
-                article_id=raw_comment.article_id,
-                text=comment_text,
-                text_lang=raw_comment.comment_lang,
-                website=raw_comment.website,
-            )
+            objects = []
+            for comment, prediction in zip(batch, results):
+                emotion_dict, max_emotion, max_score = process_predictions([prediction])
+                objects.append(models.PredictedComment(
+                    comment_id=comment.id,
+                    comment_timestamp=comment.timestamp,
+                    article_id=comment.article_id,
+                    text=comment.comment_text,
+                    text_lang=lang,
+                    website=comment.website,
+                    ekman_prediction_json=emotion_dict,
+                    ekman_prediction_emotion=max_emotion,
+                    ekman_prediction_score=max_score,
+                ))
 
-            if comment_lang == 'lv':
-                ekman_model = lvbert_lv_go_emotion_ekman_pipeline
-            elif comment_lang == 'ru':
-                ekman_model = rubert_ru_go_emotion_ekman_pipeline
-            else:
-                continue
+            session.bulk_save_objects(objects)
+            session.commit()
+            processed += len(objects)
+            last_id = batch[-1].id
+            progress.update(len(batch))
 
-            (predicted_comment.ekman_prediction_json,
-             predicted_comment.ekman_prediction_emotion,
-             predicted_comment.ekman_prediction_score) = process_predictions(ekman_model(comment_text))
+    print(f'[{lang}] done — {processed} comments processed.')
+    return processed
 
-            pc_crud.create_predicted_comment(session, predicted_comment)
-            processed_comment_count += 1
-
-        session.commit()
-
-        # Update last_id to the id of the last processed comment
-        last_id = raw_comments[-1].id
-
-        end_time = time.time()
-        print(
-            f'Processed: {processed_comment_count} out of {unpredicted_comments_count}. Time spend: {end_time - start_time} seconds.'
-        )
+def process_comments():
+    pipelines = {
+        'lv': load_model.get_pipeline_for_model('lvbert-lv-emotions-ekman'),
+        'ru': load_model.get_pipeline_for_model('rubert-base-cased-ru-go-emotions-ekman'),
+    }
+    for lang, pipeline in pipelines.items():
+        process_language(pipeline, lang, website='delfi')
 
 if __name__ == '__main__':
-    predict_start_time = time.time()
+    start_time = time.time()
     print('Processing comments...')
     process_comments()
-    predict_end_time = time.time()
-    print(f'Processing comments took {predict_end_time - predict_start_time} seconds')
+    print(f'Done in {time.time() - start_time:.1f}s')
