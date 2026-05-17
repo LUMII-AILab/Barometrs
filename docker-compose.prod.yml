@@ -17,11 +17,10 @@ services:
       - "8000:8000"  # FastAPI application port
 
   db:
-    image: pgvector/pgvector:pg16
+    image: postgres:16
     container_name: ${DB_CONTAINER_NAME}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./initdb:/docker-entrypoint-initdb.d # Enable vector extension
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
