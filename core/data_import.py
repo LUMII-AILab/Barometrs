@@ -6,11 +6,9 @@ import time
 
 import math
 import pandas as pd
-import torch
 from sqlalchemy.orm import sessionmaker
 from tqdm import tqdm
 
-from core import load_model
 from db import crud_utils, database
 from path_config import data_path
 
@@ -25,10 +23,6 @@ CHUNK_SIZE = 100_000
 # Session placeholder
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=database.engine)
 session = SessionLocal()
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-lvbert_model, lvbert_tokenizer = load_model.get_embedding_model_and_tokenizer('lvbert')
-rubert_model, rubert_tokenizer = load_model.get_embedding_model_and_tokenizer('rubert-base-cased')
 
 processed_article_file_list = crud_utils.get_processed_article_files(session)
 processed_comment_file_list = crud_utils.get_processed_comment_files(session)
@@ -44,29 +38,6 @@ def determine_text_language(text_str, region=None):
     if total == 0:
         return _REGION_LANG.get(region, 'lv')
     return 'ru' if cyrillic / total > 0.85 else _REGION_LANG.get(region, 'lv')
-
-
-def get_embedding(model, tokenizer, text):
-    model.to(device)
-
-    encoded_input = tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=512)
-    encoded_input = {key: val.to(device) for key, val in encoded_input.items()}
-
-    with torch.no_grad():
-        outputs = model(**encoded_input)
-
-    embeddings = outputs.last_hidden_state[:, 0, :]
-    return embeddings.squeeze().tolist()
-
-def get_text_embedding_by_language(text, lang):
-    if lang == 'lv':
-        embedding = get_embedding(lvbert_model, lvbert_tokenizer, text)
-    elif lang == 'ru':
-        embedding = get_embedding(rubert_model, rubert_tokenizer, text)
-    else:
-        embedding = None
-
-    return embedding
 
 
 def log_import(tracking_table, base_filename, status, notes, website):
@@ -143,7 +114,6 @@ def process_article_file(file_path, website):
 
         df = df.drop_duplicates(subset='article_id')
 
-        df['embedding'] = df.apply(lambda row: get_text_embedding_by_language(row['headline'], row['headline_lang']), axis=1)
         df['website'] = website
 
         crud_utils.bulk_insert_articles(df, session)
@@ -179,7 +149,6 @@ def parse_delfi_v3_articles(file_path):
                              on_bad_lines='skip', quoting=csv.QUOTE_NONE, chunksize=CHUNK_SIZE)
         for chunk in tqdm(chunks, total=total_chunks, desc='Articles', unit='chunk'):
             chunk['headline_lang'] = chunk.apply(lambda row: determine_text_language(row['headline'], row['region']), axis=1)
-            chunk['embedding'] = chunk.apply(lambda row: get_text_embedding_by_language(row['headline'], row['headline_lang']), axis=1)
             chunk['website'] = 'delfi'
             crud_utils.bulk_insert_articles(chunk, session)
 

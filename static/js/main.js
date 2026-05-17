@@ -218,52 +218,6 @@ $(document).ready(function() {
         });
     }
 
-    function createClusteredArticlesTable() {
-        $('.clusterFormDescription').show();
-        var table = new Tabulator("#clusteredArticlesTable", {
-            ajaxURL: "/predicted_comments_max_emotion_clustered_articles",
-            ajaxParams: function(){
-                const form = $('#analysisRequestForm');
-                const clusterForm = $('#clusteredArticlesForm');
-
-                return {
-                    predictionType: form.find('[name="currentPredictionType"]').val(),
-                    requestDate: form.find('[name="requestDate"]').val(),
-                    language: form.find('[name="language"]').val(),
-                    minClusterSize: clusterForm.find('[name="minClusterSize"]').val(),
-                    minSamples: clusterForm.find('[name="minSamples"]').val(),
-                }
-            },
-            groupBy: ["cluster"],
-            groupHeader: [
-                // Cluster name is concatenated list of article titles
-                function(value, count, data, group){
-                    uniqueArticles = [...new Set(data.map(article => article.article_title))];
-                    return '<br>' + uniqueArticles.join(',<br>');
-                },
-            ],
-            height: 500,
-            renderVerticalBuffer: 1500,
-            layout: "fitColumns",
-            columns: [
-                {title: "ID", field: "id", width: 80},
-                {title: "Cluster", field: "cluster", hozAlign: "left", visible:false},
-                {title: "Article", field: "article_title", formatter: "textarea", hozAlign: "left"},
-                {title: "Comment text", field: "comment_text", formatter: "textarea", hozAlign: "left"},
-                {title: "Emotion", field: "emotion", hozAlign: "left", headerFilter: "input"},
-                {title: "Score", field: "emotion_score", formatter: cell => cell.getValue() + "%", hozAlign: "left"},
-            ],
-        });
-
-        table.on('groupClick', function(e, group){
-            group.toggle();
-        });
-    }
-
-    // $('#clusterArticlesButton').click(function() {
-    //     createClusteredArticlesTable();
-    // });
-
     function plotCommentAndArticleCountChart(data, chartId, groupBy, language) {
         const chartStart = data.chart_start;
         const comment_count_per_period = data.comment_count_per_period;

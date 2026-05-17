@@ -2,7 +2,6 @@ import datetime
 from sqlalchemy import Column, Integer, String, ForeignKey, TIMESTAMP, Float, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import JSONB
-from pgvector.sqlalchemy import Vector
 
 from .base import Base
 
@@ -29,7 +28,6 @@ class Article(Base):
     headline = Column(String)
     headline_lang = Column(String, index=True)
     pub_timestamp = Column(TIMESTAMP, index=True)
-    embedding = Column(Vector(768))
     url = Column(String)
     website = Column(String, index=True)
 

@@ -98,28 +98,6 @@ def read_predicted_comments_max_emotion_articles(
 
     return predicted_comments
 
-@router.get("/predicted_comments_max_emotion_clustered_articles")
-def read_predicted_comments_max_emotion_articles(
-    predictionType: str,
-    language: str,
-    requestDate: str = Query(..., pattern="^\\d{4}-\\d{2}-\\d{2}$"),
-    minClusterSize: int = Query(5),
-    minSamples: int = Query(2),
-    session: Session = Depends(database.get_session)
-):
-    request_date = datetime.strptime(requestDate, "%Y-%m-%d").date()
-
-    predicted_comments = pc_crud.get_predicted_comments_max_emotion_articles_clustered(
-        session,
-        predictionType,
-        request_date,
-        language,
-        minClusterSize,
-        minSamples
-    )
-
-    return predicted_comments
-
 @router.get("/aggressiveness_by_period")
 def read_aggressiveness_by_period(
     language: str,
