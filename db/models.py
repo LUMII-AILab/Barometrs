@@ -111,6 +111,7 @@ class LemmatizedComment(Base):
     comment_id = Column(Integer, ForeignKey('comments.id'), unique=True, index=True)
     lemmas = Column(JSONB)
     lemma_count = Column(Integer)
+    words = Column(JSONB)  # original word forms, parallel to lemmas: words[i] is the surface form of lemmas[i]
 
 class AggressivenessByDay(Base):
     __tablename__ = "aggressiveness_by_day"
@@ -124,6 +125,16 @@ class AggressivenessByDay(Base):
     total_word_count = Column(Integer)
     aggressiveness_ratio = Column(Float)
     weighted_aggressiveness_ratio = Column(Float)
+
+class AggressiveKeywordsByDay(Base):
+    __tablename__ = "aggressive_keywords_by_day"
+
+    id = Column(Integer, primary_key=True)
+    date = Column(TIMESTAMP, index=True)
+    language = Column(String, index=True)
+    website = Column(String, index=True)
+    keywords_json = Column(JSONB)  # {"word": {"count": N, "weight_sum": F, "article_count": N, "article_ids": [...], "forms": {"surface_form": count}}}
+    total_word_count = Column(Integer)
 
 def register_models():
     pass
