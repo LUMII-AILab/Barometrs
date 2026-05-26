@@ -19,18 +19,20 @@ def lemmatize_batch(nlp: stanza.Pipeline, comments: list) -> list[dict]:
     processed = nlp(docs)
     results = []
     for comment, doc in zip(comments, processed):
-        lemmas = [
-            word.lemma.lower()
-            for sentence in doc.sentences
-            for word in sentence.words
-            if word.lemma
-            and word.upos not in ('PUNCT', 'SYM', 'X', 'NUM')
-            and word.lemma.isalpha() # drops punctuation, numbers, emoticon fragments
-        ]
+        lemmas = []
+        words = []
+        for sentence in doc.sentences:
+            for word in sentence.words:
+                if (word.lemma
+                        and word.upos not in ('PUNCT', 'SYM', 'X', 'NUM')
+                        and word.lemma.isalpha()):
+                    lemmas.append(word.lemma.lower())
+                    words.append(word.text.lower())
         results.append({
             'comment_id': comment.id,
             'lemmas': lemmas,
             'lemma_count': len(lemmas),
+            'words': words,
         })
     return results
 
