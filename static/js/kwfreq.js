@@ -16,10 +16,40 @@
         return { startDate, endDate };
     }
 
-    function getLang() { return $('#kwfreqLang').val(); }
-    function getWebsite() { return $('#kwfreqWebsite').val(); }
-    function getSelectedDate() { return $('#kwfreqDate').val(); }
-    function getSortVal(kw) { return sortField === 'weight_sum' ? kw.weight_sum : kw.count; }
+    function getLang()        { return $('#kwfreqLang').val(); }
+    function getWebsite()     { return $('#kwfreqWebsite').val(); }
+    function getSelectedDate(){ return $('#kwfreqDate').val(); }
+    function getSortVal(kw)   { return sortField === 'weight_sum' ? kw.weight_sum : kw.count; }
+    function getTopN()        { const v = $('#kwfreqTopN').val(); return v === 'all' ? Infinity : parseInt(v, 10); }
+    function getMinCount()    { return parseInt($('#kwfreqMinCount').val(), 10) || 0; }
+    function getStyle()       { return $('#kwfreqStyle').val(); }
+
+    function getFilteredData() {
+        const minCount = getMinCount();
+        const topN = getTopN();
+        const filtered = keywordsData.filter(kw => kw.count >= minCount);
+        filtered.sort((a, b) => getSortVal(b) - getSortVal(a));
+        return topN === Infinity ? filtered : filtered.slice(0, topN);
+    }
+
+    function cloudColor(word, weight) {
+        const style = getStyle();
+        // weight here is font size: 14 (min) to 70 (max); t = 0 (rare) → 1 (frequent)
+        const t = Math.max(0, Math.min(1, (weight - 14) / 56));
+        if (style === 'mono') {
+            const l = Math.round(75 - t * 60);
+            return `hsl(0,0%,${l}%)`;
+        }
+        if (style === 'heat') {
+            // orange (#e8921a) → dark red (#8b0000)
+            const r = Math.round(232 - t * 93);
+            const g = Math.round(146 - t * 146);
+            const b = Math.round(26 - t * 26);
+            return `rgb(${r},${g},${b})`;
+        }
+        // blue (default)
+        return t > 0.5 ? '#1a5fa8' : '#4a90d9';
+    }
 
     function loadDates() {
         const { startDate, endDate } = getGlobalRange();
@@ -48,7 +78,6 @@
         $.get(url, params, function (data) {
             keywordsData = data;
             selectedWord = null;
-            $('#kwfreqKeywordCount').text(data.length);
             renderList();
             renderCloud();
             resetPanels();
@@ -56,9 +85,13 @@
     }
 
     function renderList() {
-        const sorted = [...keywordsData].sort((a, b) => getSortVal(b) - getSortVal(a));
+        const filtered = getFilteredData();
+        const total = keywordsData.length;
+        $('#kwfreqKeywordCount').text(
+            filtered.length === total ? total : `${filtered.length} of ${total}`
+        );
         const container = $('#kwfreqKeywordList').empty();
-        sorted.forEach(kw => {
+        filtered.forEach(kw => {
             const row = $('<div class="kwfreq-kw-row">').toggleClass('selected', kw.word === selectedWord);
             row.append($('<span class="kwfreq-kw-word">').text(kw.word));
             row.append($('<span class="kwfreq-kw-counts">').text(kw.count + ' / ' + kw.article_count));
@@ -73,17 +106,17 @@
         canvas.width = container.clientWidth || 600;
         canvas.height = container.clientHeight || 320;
 
-        if (!keywordsData.length) {
+        const filtered = getFilteredData();
+        if (!filtered.length) {
             canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
             return;
         }
 
-        const sorted = [...keywordsData].sort((a, b) => getSortVal(b) - getSortVal(a));
-        const maxVal = getSortVal(sorted[0]);
-        const minVal = getSortVal(sorted[sorted.length - 1]);
+        const maxVal = getSortVal(filtered[0]);
+        const minVal = getSortVal(filtered[filtered.length - 1]);
         const span = maxVal - minVal || 1;
 
-        const list = sorted.map(kw => {
+        const list = filtered.map(kw => {
             const val = getSortVal(kw);
             const size = Math.round(14 + ((val - minVal) / span) * 56);
             return [kw.word, size];
@@ -94,7 +127,7 @@
             gridSize: 8,
             weightFactor: 1,
             fontFamily: 'Arial, sans-serif',
-            color: (word, weight) => weight > 35 ? '#1a5fa8' : '#4a90d9',
+            color: cloudColor,
             backgroundColor: '#ffffff',
             rotateRatio: 0,
             shrinkToFit: true,
@@ -146,11 +179,12 @@
     }
 
     function resetPanels() {
+        selectedWord = null;
         $('#kwfreqForms').html('<span class="kwfreq-placeholder">Word forms...</span>');
         $('#kwfreqArticles').html('<span class="kwfreq-placeholder">Top 10 articles...</span>');
     }
 
-    // Re-render cloud when panel is resized (both axes)
+    // Re-render cloud when panel is resized
     let resizeTimer;
     new ResizeObserver(() => {
         clearTimeout(resizeTimer);
@@ -169,6 +203,15 @@
     $('#kwfreqDate').on('change', loadKeywords);
     $('input[name="kwfreqSort"]').on('change', function () {
         sortField = this.value;
+        renderList();
+        renderCloud();
+    });
+    // Visual controls — re-render without re-fetching
+    $('#kwfreqTopN, #kwfreqStyle').on('change', function () {
+        renderList();
+        renderCloud();
+    });
+    $('#kwfreqMinCount').on('input', function () {
         renderList();
         renderCloud();
     });

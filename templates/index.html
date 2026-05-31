@@ -111,6 +111,23 @@
                         <option value="delfi">Delfi</option>
                         <option value="apollo">Apollo</option>
                     </select>
+                    <span class="kwfreq-controls-sep"></span>
+                    <span class="kwfreq-controls-label">top</span>
+                    <select id="kwfreqTopN" class="form-select form-select-sm kwfreq-select">
+                        <option value="25">25</option>
+                        <option value="50" selected>50</option>
+                        <option value="100">100</option>
+                        <option value="200">200</option>
+                        <option value="all">all</option>
+                    </select>
+                    <span class="kwfreq-controls-label">min count</span>
+                    <input type="number" id="kwfreqMinCount" class="form-control form-control-sm kwfreq-input" value="0" min="0" step="1">
+                    <span class="kwfreq-controls-label">style</span>
+                    <select id="kwfreqStyle" class="form-select form-select-sm kwfreq-select">
+                        <option value="blue" selected>blue</option>
+                        <option value="mono">mono</option>
+                        <option value="heat">heat</option>
+                    </select>
                 </div>
 
                 <div class="kwfreq-grid">
