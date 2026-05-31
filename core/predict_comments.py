@@ -1,10 +1,11 @@
 import time
-from datasets import Dataset as HFDataset
+import warnings
 from tqdm import tqdm
-from transformers.pipelines.pt_utils import KeyDataset
 from sqlalchemy.orm import sessionmaker
 from db import models, crud_utils, database
 from core import load_model
+
+warnings.filterwarnings("ignore", message="You seem to be using the pipelines sequentially on GPU")
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=database.engine)
 session = SessionLocal()
@@ -33,8 +34,7 @@ def process_language(pipeline, lang, website=None):
                 break
 
             texts = [c.comment_text for c in batch]
-            ds = HFDataset.from_dict({"text": texts})
-            results = list(pipeline(KeyDataset(ds, "text"), batch_size=PIPELINE_BATCH_SIZE, truncation=True))
+            results = pipeline(texts, batch_size=PIPELINE_BATCH_SIZE, truncation=True)
 
             objects = []
             for comment, prediction in zip(batch, results):
