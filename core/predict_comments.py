@@ -7,7 +7,7 @@ from core import load_model
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=database.engine)
 session = SessionLocal()
 
-CHUNK_SIZE = 100_000
+CHUNK_SIZE = 10_000
 PIPELINE_BATCH_SIZE = 64
 
 def process_predictions(predictions):
