@@ -197,27 +197,6 @@ $(document).ready(function() {
         addRequestPredictedCommentsOnClickToChart(chartDiv);
     }
 
-    function createArticlesTable(data) {
-        var table = new Tabulator("#articlesTable", {
-            ajaxURL: "/predicted_comments_max_emotion_articles",
-            ajaxParams: function(){
-                const form = $('#analysisRequestForm');
-
-                return {
-                    predictionType: form.find('[name="currentPredictionType"]').val(),
-                    requestDate: form.find('[name="requestDate"]').val(),
-                    language: form.find('[name="language"]').val(),
-                }
-            },
-            height: 300,
-            layout: "fitColumns",
-            columns: [
-                {title: "ID", field: "id", width: 80},
-                {title: "Article", field: "article_title", formatter: "textarea", hozAlign: "left"},
-            ],
-        });
-    }
-
     function plotCommentAndArticleCountChart(data, chartId, groupBy, language) {
         const chartStart = data.chart_start;
         const comment_count_per_period = data.comment_count_per_period;
