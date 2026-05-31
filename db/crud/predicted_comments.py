@@ -5,19 +5,18 @@ from db import models
 import pandas as pd
 
 supported_languages = ['lv', 'ru']
-min_date = date(2020, 1, 1)
 
 def create_predicted_comment(db: Session, predicted_comment: models.PredictedComment):
     db.add(predicted_comment)
     return predicted_comment
 
 def get_predicted_comment_allowed_months(db: Session):
-    results = (
-        db.query(
-            func.max(cast(models.PredictedComment.comment_timestamp, Date)).label('max_date')
-        ).first()
-    )
+    results = db.query(
+        func.min(cast(models.PredictedComment.comment_timestamp, Date)).label('min_date'),
+        func.max(cast(models.PredictedComment.comment_timestamp, Date)).label('max_date'),
+    ).first()
 
+    min_date = results.min_date
     max_date = results.max_date
     months = pd.date_range(start=min_date, end=max_date, freq='MS').strftime('%Y-%m').tolist()
 
@@ -47,8 +46,6 @@ def get_predicted_comments_max_emotion_chart_data(
         end_month: date,
         group_by: str = 'month'
 ):
-    start_month = max(start_month, min_date)
-    end_month = max(end_month, min_date)
     if start_month > end_month:
         start_month = end_month
 
@@ -281,9 +278,6 @@ def get_predicted_comments_max_emotion_comments_by_type_and_request_date(db: Ses
     return df.to_dict(orient='records')
 
 def get_predicted_comments_max_emotion_articles_by_type_and_date(db: Session, prediction_type: str, request_date: date, lang: str):
-    if request_date < min_date:
-        request_date = min_date
-
     query = db.query(
         models.Article.article_id.label('id'),
         models.Article.headline.label('article_title'),

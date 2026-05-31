@@ -1,4 +1,5 @@
 function addRequestPredictedCommentsOnClickToAggressivenessChart(chart) {
+    if (!chart) return;
     const $requestForm = $('#analysisRequestForm');
 
     chart.on('click', function(params) {
