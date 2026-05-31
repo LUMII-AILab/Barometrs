@@ -1,6 +1,5 @@
 import os
 import re
-from collections import Counter
 import pandas as pd
 from sqlalchemy.orm import sessionmaker
 from db import database, models
@@ -9,28 +8,10 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=database.eng
 
 CSV_PATH = os.path.join(os.path.dirname(__file__), 'data', 'aggressive_keywords.csv')
 
-CATEGORY_COLUMNS = ['DISKRIM', 'LAMUV', 'NETAISN', 'AICIN', 'DARB', 'PERS', 'ASOC', 'MILIT', 'NOSOD', 'EMOC', 'NODEV']
-
 CYRILLIC_RE = re.compile(r'[а-яёА-ЯЁ]')
 
 def detect_word_language(word: str) -> str:
     return 'ru' if CYRILLIC_RE.search(word) else 'lv'
-
-def build_frequency_map(session, language: str) -> Counter:
-    """Return a Counter of lemma → total appearances across lemmatized comments for the given language."""
-    print(f'Building frequency map for language={language}...')
-    rows = (
-        session.query(models.LemmatizedComment.lemmas)
-        .join(models.Comment, models.LemmatizedComment.comment_id == models.Comment.id)
-        .filter(models.Comment.comment_lang == language)
-        .all()
-    )
-    counter: Counter = Counter()
-    for (lemmas,) in rows:
-        if lemmas:
-            counter.update(lemmas)
-    print(f'  Processed {len(rows)} lemmatized comments, {sum(counter.values())} total lemma tokens.')
-    return counter
 
 def import_keywords():
     session = SessionLocal()
@@ -41,9 +22,6 @@ def import_keywords():
             session.query(models.AggressiveKeyword).delete()
             session.commit()
 
-        freq_lv = build_frequency_map(session, 'lv')
-        freq_ru = build_frequency_map(session, 'ru')
-
         df = pd.read_csv(CSV_PATH)
         print(f'Read {len(df)} keywords from {CSV_PATH}')
 
@@ -51,12 +29,11 @@ def import_keywords():
         for _, row in df.iterrows():
             word = row['word']
             lang = detect_word_language(word)
-            freq_map = freq_ru if lang == 'ru' else freq_lv
             records.append({
                 'word':      word,
                 'language':  lang,
                 'weight':    row['weight'],
-                'frequency': freq_map[word.lower()],
+                'frequency': 0,
                 'category_diskrim': bool(row['DISKRIM']),
                 'category_lamuv':   bool(row['LAMUV']),
                 'category_netaisn': bool(row['NETAISN']),
