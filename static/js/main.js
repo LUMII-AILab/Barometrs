@@ -5,8 +5,29 @@ function getQuantifier(groupBy) {
     return '';
 }
 
-// ECharts instances for emotion charts, keyed by container ID
+// ECharts instances and base series data for emotion charts, keyed by container ID
 const emotionCharts = {};
+const _emotionChartSeries = {};
+
+function updateEmotionChartOverlays() {
+    const markAreaData = [];
+    $('.event-overlay-tag.active').each(function() {
+        const tag = $(this);
+        const isCovid = tag.hasClass('event-tag-covid');
+        markAreaData.push([
+            {
+                xAxis: tag.data('start') + '-01',
+                itemStyle: { color: isCovid ? 'rgba(55,138,221,0.12)' : 'rgba(216,90,48,0.12)' }
+            },
+            { xAxis: tag.data('end') + '-28' }
+        ]);
+    });
+    const overlaysSeries = { name: '__overlays__', type: 'line', data: [], markArea: { silent: true, data: markAreaData } };
+    Object.entries(emotionCharts).forEach(function([chartId, chart]) {
+        const base = _emotionChartSeries[chartId] || [];
+        chart.setOption({ series: base.concat([overlaysSeries]) }, { replaceMerge: ['series'] });
+    });
+}
 
 function handleEmotionChartClick(date, lang) {
     const requestForm = $('#analysisRequestForm');
@@ -38,6 +59,7 @@ $(document).ready(function() {
     $('#requestAnalysis').click(function () {
         Object.values(emotionCharts).forEach(c => c.dispose());
         Object.keys(emotionCharts).forEach(k => delete emotionCharts[k]);
+        Object.keys(_emotionChartSeries).forEach(k => delete _emotionChartSeries[k]);
 
         $('.loading-spinners').show();
         $('#charts').hide();
@@ -74,6 +96,7 @@ $(document).ready(function() {
             complete: function() {
                 $('.loading-spinners').hide();
                 $('#charts').show();
+                Object.values(emotionCharts).forEach(c => c.resize());
                 setTimeout(updateChartOverlays, 500);
             }
         });
@@ -181,8 +204,7 @@ $(document).ready(function() {
 
         const emotions = EMOTIONS.filter(e => allEmotions.has(e));
         const series = emotions.flatMap(e => mergedLineSeries(lv, ru, e));
-        const lvNames = emotions.map(e => 'LV ' + e);
-        const ruNames = emotions.map(e => 'RU ' + e);
+        _emotionChartSeries[chartId] = series;
 
         const chart = initChart(chartId);
         chart.setOption({
@@ -192,7 +214,7 @@ $(document).ready(function() {
                 trigger: 'axis',
                 valueFormatter: v => v != null ? (v * 100).toFixed(2) + '%' : '-'
             },
-            legend: dualLegend(lvNames, ruNames),
+            legend: dualLegend(emotions.map(e => 'LV ' + e), emotions.map(e => 'RU ' + e)),
             yAxis: {
                 type: 'value',
                 axisLabel: { formatter: v => (v * 100).toFixed(0) + '%' }
@@ -203,10 +225,21 @@ $(document).ready(function() {
     }
 
     function plotCommentAndArticleCountChart(lvData, ruData, chartId, groupBy) {
-        const lvComments = Object.entries(lvData.comment_count_per_period).map(([d, v]) => [d, v]);
-        const ruComments = Object.entries(ruData.comment_count_per_period).map(([d, v]) => [d, v]);
-        const lvArticles = Object.entries(lvData.article_count_per_period).map(([d, v]) => [d, v]);
-        const ruArticles = Object.entries(ruData.article_count_per_period).map(([d, v]) => [d, v]);
+        const series = [
+            { name: 'LV Comments', type: 'line', showSymbol: false,
+              data: Object.entries(lvData.comment_count_per_period).map(([d, v]) => [d, v]),
+              itemStyle: { color: '#2878B5' }, lineStyle: { color: '#2878B5', type: 'solid' } },
+            { name: 'RU Comments', type: 'line', showSymbol: false,
+              data: Object.entries(ruData.comment_count_per_period).map(([d, v]) => [d, v]),
+              itemStyle: { color: '#2878B5' }, lineStyle: { color: '#2878B5', type: 'dashed' } },
+            { name: 'LV Articles', type: 'line', showSymbol: false,
+              data: Object.entries(lvData.article_count_per_period).map(([d, v]) => [d, v]),
+              itemStyle: { color: '#FF8C42' }, lineStyle: { color: '#FF8C42', type: 'solid' } },
+            { name: 'RU Articles', type: 'line', showSymbol: false,
+              data: Object.entries(ruData.article_count_per_period).map(([d, v]) => [d, v]),
+              itemStyle: { color: '#FF8C42' }, lineStyle: { color: '#FF8C42', type: 'dashed' } }
+        ];
+        _emotionChartSeries[chartId] = series;
 
         const chart = initChart(chartId);
         chart.setOption({
@@ -228,16 +261,7 @@ $(document).ready(function() {
                 }
             ],
             yAxis: { type: 'value', name: 'Count' },
-            series: [
-                { name: 'LV Comments', type: 'line', showSymbol: false, data: lvComments,
-                  itemStyle: { color: '#2878B5' }, lineStyle: { color: '#2878B5', type: 'solid' } },
-                { name: 'RU Comments', type: 'line', showSymbol: false, data: ruComments,
-                  itemStyle: { color: '#2878B5' }, lineStyle: { color: '#2878B5', type: 'dashed' } },
-                { name: 'LV Articles', type: 'line', showSymbol: false, data: lvArticles,
-                  itemStyle: { color: '#FF8C42' }, lineStyle: { color: '#FF8C42', type: 'solid' } },
-                { name: 'RU Articles', type: 'line', showSymbol: false, data: ruArticles,
-                  itemStyle: { color: '#FF8C42' }, lineStyle: { color: '#FF8C42', type: 'dashed' } }
-            ]
+            series
         });
         registerClickHandler(chart);
     }
@@ -247,19 +271,6 @@ $(document).ready(function() {
     requestAndProcessAnalysisData();
 });
 
-
-function adjustChartLayout() {
-    window.dispatchEvent(new Event('resize'));
-}
-
-function applyCompactMode() {
-    window.dispatchEvent(new Event('resize'));
-}
-
-function updateCharts(language) {
-    setTimeout(() => window.dispatchEvent(new Event('resize')), 500);
-}
-updateCharts($('#chartOption').val());
 
 const tabVisibility = {
     '#emotionsTabPane': {
