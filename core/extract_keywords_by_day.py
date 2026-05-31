@@ -19,7 +19,6 @@ def extract_keywords_from_comments():
     ).filter(
         models.PredictedComment.text_lang.in_(supported_languages),
         models.PredictedComment.ekman_prediction_emotion != '',
-        cast(models.PredictedComment.comment_timestamp, Date) >= '2020-01-01'
     )
 
     results = query.all()
