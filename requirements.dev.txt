@@ -20,3 +20,4 @@ samplics
 stanza
 lingua-language-detector
 tqdm
+datasets
