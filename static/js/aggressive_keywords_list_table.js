@@ -21,8 +21,7 @@
             initialSort: [{column: "word", dir: "asc"}],
             groupBy: "language",
             groupHeader: function (value, count) {
-                return "Language: " + value.toUpperCase() +
-                    "<span style='color:#d00; margin-left:10px;'>(" + count + " keywords)</span>";
+                return `Language: <strong>${value.toUpperCase()}</strong> <span class="badge bg-secondary-subtle ms-2">${count} keywords</span>`;
             },
             columns: [
                 {title: "Word", field: "word", hozAlign: "left", headerFilter: "input", width: 140},
