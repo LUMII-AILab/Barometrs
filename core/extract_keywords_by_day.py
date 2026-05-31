@@ -15,11 +15,9 @@ def extract_keywords_from_comments():
         models.PredictedComment.text.label('comment_text'),
         models.PredictedComment.text_lang.label('text_lang'),
         cast(models.PredictedComment.comment_timestamp, Date).label('comment_date'),
-        # models.PredictedComment.normal_prediction_emotion.label('normal_emotion'),
         models.PredictedComment.ekman_prediction_emotion.label('ekman_emotion'),
     ).filter(
         models.PredictedComment.text_lang.in_(supported_languages),
-        # models.PredictedComment.normal_prediction_emotion != '',
         models.PredictedComment.ekman_prediction_emotion != '',
         cast(models.PredictedComment.comment_timestamp, Date) >= '2020-01-01'
     )
@@ -35,8 +33,6 @@ def extract_keywords_from_comments():
         keywords = model.extract_keywords(text, stop_words=stopword_list, keyphrase_ngram_range=(1, 3), top_n=30)
         return keywords
 
-    # kb_lvbert_normal = load_model.get_keybert_model_by_language_and_prediction_type('lv', 'normal')
-    # kb_rubert_normal = load_model.get_keybert_model_by_language_and_prediction_type('ru', 'normal')
     kb_lvbert_ekman = load_model.get_keybert_model_by_language_and_prediction_type('lv', 'ekman')
     kb_rubert_ekman = load_model.get_keybert_model_by_language_and_prediction_type('ru', 'ekman')
 
@@ -44,8 +40,6 @@ def extract_keywords_from_comments():
     ru_stopwords = load_model.get_stopwords('ru')
 
     prediction_configurations = [
-        # ('normal', 'lv', kb_lvbert_normal, lv_stopwords),
-        # ('normal', 'ru', kb_rubert_normal, ru_stopwords),
         ('ekman', 'lv', kb_lvbert_ekman, lv_stopwords),
         ('ekman', 'ru', kb_rubert_ekman, ru_stopwords)
     ]
