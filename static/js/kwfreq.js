@@ -1,0 +1,178 @@
+(function () {
+    'use strict';
+
+    let keywordsData = [];
+    let selectedWord = null;
+    let sortField = 'count';
+
+    function getGlobalRange() {
+        const form = $('#analysisRequestForm');
+        const startMonth = form.find('[name="analysisStartMonth"]').val();
+        const endMonth = form.find('[name="analysisEndMonth"]').val();
+        const startDate = startMonth + '-01';
+        const [y, m] = endMonth.split('-').map(Number);
+        const lastDay = new Date(y, m, 0).getDate();
+        const endDate = endMonth + '-' + String(lastDay).padStart(2, '0');
+        return { startDate, endDate };
+    }
+
+    function getLang() { return $('#kwfreqLang').val(); }
+    function getWebsite() { return $('#kwfreqWebsite').val(); }
+    function getSelectedDate() { return $('#kwfreqDate').val(); }
+    function getSortVal(kw) { return sortField === 'weight_sum' ? kw.weight_sum : kw.count; }
+
+    function loadDates() {
+        const { startDate, endDate } = getGlobalRange();
+        $.get('/aggressive_keywords_dates', {
+            language: getLang(), startDate, endDate, website: getWebsite()
+        }, function (dates) {
+            const sel = $('#kwfreqDate');
+            const prev = sel.val();
+            sel.empty().append('<option value="all">aggregate</option>');
+            dates.forEach(d => sel.append(`<option value="${d}">${d}</option>`));
+            if (prev && (prev === 'all' || dates.includes(prev))) sel.val(prev);
+            loadKeywords();
+        });
+    }
+
+    function loadKeywords() {
+        const { startDate, endDate } = getGlobalRange();
+        const date = getSelectedDate();
+
+        const isAggregate = date === 'all';
+        const url = isAggregate ? '/aggressive_keywords_by_period' : '/aggressive_keywords_by_day';
+        const params = isAggregate
+            ? { language: getLang(), startDate, endDate, website: getWebsite() }
+            : { language: getLang(), requestDate: date, website: getWebsite() };
+
+        $.get(url, params, function (data) {
+            keywordsData = data;
+            selectedWord = null;
+            $('#kwfreqKeywordCount').text(data.length);
+            renderList();
+            renderCloud();
+            resetPanels();
+        });
+    }
+
+    function renderList() {
+        const sorted = [...keywordsData].sort((a, b) => getSortVal(b) - getSortVal(a));
+        const container = $('#kwfreqKeywordList').empty();
+        sorted.forEach(kw => {
+            const row = $('<div class="kwfreq-kw-row">').toggleClass('selected', kw.word === selectedWord);
+            row.append($('<span class="kwfreq-kw-word">').text(kw.word));
+            row.append($('<span class="kwfreq-kw-counts">').text(kw.count + ' / ' + kw.article_count));
+            row.on('click', () => selectKeyword(kw));
+            container.append(row);
+        });
+    }
+
+    function renderCloud() {
+        const canvas = document.getElementById('kwfreqWordCloud');
+        const container = canvas.parentElement;
+        canvas.width = container.clientWidth || 600;
+        canvas.height = container.clientHeight || 320;
+
+        if (!keywordsData.length) {
+            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+            return;
+        }
+
+        const sorted = [...keywordsData].sort((a, b) => getSortVal(b) - getSortVal(a));
+        const maxVal = getSortVal(sorted[0]);
+        const minVal = getSortVal(sorted[sorted.length - 1]);
+        const span = maxVal - minVal || 1;
+
+        const list = sorted.map(kw => {
+            const val = getSortVal(kw);
+            const size = Math.round(14 + ((val - minVal) / span) * 56);
+            return [kw.word, size];
+        });
+
+        WordCloud(canvas, {
+            list,
+            gridSize: 8,
+            weightFactor: 1,
+            fontFamily: 'Arial, sans-serif',
+            color: (word, weight) => weight > 35 ? '#1a5fa8' : '#4a90d9',
+            backgroundColor: '#ffffff',
+            rotateRatio: 0,
+            shrinkToFit: true,
+        });
+    }
+
+    function selectKeyword(kw) {
+        selectedWord = kw.word;
+        renderList();
+        renderForms(kw.forms || {});
+        loadArticles(kw.word);
+    }
+
+    function renderForms(forms) {
+        const panel = $('#kwfreqForms');
+        const entries = Object.entries(forms).sort((a, b) => b[1] - a[1]);
+        if (!entries.length) {
+            panel.html('<span class="kwfreq-placeholder">No word forms found.</span>');
+            return;
+        }
+        panel.html(entries.map(([form, cnt]) =>
+            `<span class="kwfreq-form-chip">${form}<span class="kwfreq-form-cnt">${cnt}</span></span>`
+        ).join(''));
+    }
+
+    function loadArticles(word) {
+        const { startDate, endDate } = getGlobalRange();
+        const date = getSelectedDate();
+        const s = date === 'all' ? startDate : date;
+        const e = date === 'all' ? endDate : date;
+
+        $('#kwfreqArticles').html('<span class="kwfreq-placeholder">Loading...</span>');
+
+        $.get('/aggressive_keyword_articles', {
+            lemma: word, language: getLang(), startDate: s, endDate: e, website: getWebsite()
+        }, function (articles) {
+            const panel = $('#kwfreqArticles');
+            if (!articles.length) {
+                panel.html('<span class="kwfreq-placeholder">No articles found.</span>');
+                return;
+            }
+            panel.html(articles.slice(0, 10).map(a =>
+                `<div class="kwfreq-article">
+                    <a href="${a.url}" target="_blank" rel="noopener">${a.headline || '—'}</a>
+                    <span class="kwfreq-article-meta">${a.website} ${a.pub_timestamp || ''}</span>
+                </div>`
+            ).join(''));
+        });
+    }
+
+    function resetPanels() {
+        $('#kwfreqForms').html('<span class="kwfreq-placeholder">Word forms...</span>');
+        $('#kwfreqArticles').html('<span class="kwfreq-placeholder">Top 10 articles...</span>');
+    }
+
+    // Re-render cloud when panel is resized (both axes)
+    let resizeTimer;
+    new ResizeObserver(() => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => { if (keywordsData.length) renderCloud(); }, 150);
+    }).observe(document.querySelector('.kwfreq-cloud-panel'));
+
+    window.addEventListener('resize', () => {
+        if (document.getElementById('kwfreqTabPane').classList.contains('show') && keywordsData.length) {
+            renderCloud();
+        }
+    });
+
+    // Events
+    document.getElementById('kwfreq-tab').addEventListener('shown.bs.tab', loadDates);
+    $('#kwfreqLang, #kwfreqWebsite').on('change', loadDates);
+    $('#kwfreqDate').on('change', loadKeywords);
+    $('input[name="kwfreqSort"]').on('change', function () {
+        sortField = this.value;
+        renderList();
+        renderCloud();
+    });
+    $('#requestAnalysis').on('click', function () {
+        if (document.getElementById('kwfreqTabPane').classList.contains('show')) loadDates();
+    });
+})();

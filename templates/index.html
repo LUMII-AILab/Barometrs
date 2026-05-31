@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="/static/modules/bootstrap-5.3.8-dist/css/bootstrap.css">
     <link rel="stylesheet" href="/static/modules/tabulator/dist/css/tabulator.min.css">
     <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/kwfreq.css">
     <link rel="stylesheet" href="/static/css/filters_form.css">
     <link rel="stylesheet" href="/static/css/nav_tabs.css">
 </head>
@@ -85,6 +86,51 @@
                     <div id="aggressivenessWebsiteChart"></div>
                 </div>
             </div>
+            <div class="tab-pane fade" id="kwfreqTabPane" role="tabpanel">
+                <div class="kwfreq-controls">
+                    <span class="kwfreq-controls-label">
+                        <span id="kwfreqKeywordCount">—</span> most frequent keywords:
+                    </span>
+                    <select id="kwfreqDate" class="form-select form-select-sm kwfreq-select">
+                        <option value="all">aggregate</option>
+                    </select>
+                    <span class="kwfreq-controls-label">sort by</span>
+                    <label class="kwfreq-radio-label">
+                        <input type="radio" name="kwfreqSort" value="count" checked> absolute count
+                    </label>
+                    <label class="kwfreq-radio-label">
+                        <input type="radio" name="kwfreqSort" value="weight_sum"> weighted count
+                    </label>
+                    <select id="kwfreqLang" class="form-select form-select-sm kwfreq-select">
+                        <option value="lv" selected>LV</option>
+                        <option value="ru">RU</option>
+                    </select>
+                    <select id="kwfreqWebsite" class="form-select form-select-sm kwfreq-select">
+                        <option value="all" selected>All websites</option>
+                        <option value="tvnet">TVNET</option>
+                        <option value="delfi">Delfi</option>
+                        <option value="apollo">Apollo</option>
+                    </select>
+                </div>
+
+                <div class="kwfreq-grid">
+                    <div class="kwfreq-list-panel" id="kwfreqKeywordList"></div>
+                    <div class="kwfreq-right-panel">
+                        <div class="kwfreq-cloud-panel">
+                            <canvas id="kwfreqWordCloud"></canvas>
+                        </div>
+                        <div class="kwfreq-detail-row">
+                            <div class="kwfreq-sub-panel" id="kwfreqForms">
+                                <span class="kwfreq-placeholder">Word forms...</span>
+                            </div>
+                            <div class="kwfreq-sub-panel" id="kwfreqArticles">
+                                <span class="kwfreq-placeholder">Top 10 articles...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="tab-pane fade" id="aggressiveKeywordsListTabPane" role="tabpanel">
                 <div id="aggressiveKeywordsListTable" class="tabulator-table"></div>
             </div>
@@ -134,35 +180,8 @@
     </div>
 </div>
 
-{#    <h2>Articles</h2>#}
-{#    <div id="articlesTable" class="tabulator-table"></div>#}
-
-{#    <h2>Clustered articles</h2>#}
-{#    <p>Note: <i>Articles are automatically clustered by the semantic similarity of their headlines.</i></p>#}
-{#    <div class="clusterFormDescription" style="display: none;">#}
-{#        <p>#}
-{#          Clustering is performed using the HDBSCAN algorithm. The default settings use a minimum cluster size of 2 and minimum samples of 2.<br>#}
-{#          <strong>Minimum cluster size:</strong> The smallest number of articles that can form a cluster. If a group of articles is fewer than this number, it will not be recognized as a cluster.<br>#}
-{#          <strong>Minimum samples:</strong> The smallest number of close neighbors an article must have to be considered a core point of a cluster. Determines the cluster density requirement and affects algorithm's sensitivity to noise.#}
-{#        </p>#}
-{#        <form id="clusteredArticlesForm">#}
-{#            <label for="minClusterSize">Minimum cluster size:</label>#}
-{#            <input type="number" id="minClusterSize" name="minClusterSize" value="2" min="2" onchange="#}
-{#                if (parseInt(this.value) < 2) {#}
-{#                    this.value = 2;#}
-{#                }#}
-{#            ">#}
-{#            <label for="minSamples">Minimum samples:</label>#}
-{#            <input type="number" id="minSamples" name="minSamples" value="2" min="1" onchange="#}
-{#                if (parseInt(this.value) < 1) {#}
-{#                    this.value = 1;#}
-{#                }#}
-{#            ">#}
-{#            <button type="button" id="clusterArticlesButton">Re-cluster</button>#}
-{#        </form>#}
-{#    </div>#}
-{#    <div id="clusteredArticlesTable" class="tabulator-table"></div>#}
-
+<script src="/static/modules/wordcloud2/wordcloud2.js"></script>
+<script src="/static/js/kwfreq.js"></script>
 <script src="/static/js/aggressive_keywords_list_table.js"></script>
 <script src="/static/js/predicted_comments_table.js"></script>
 <script src="/static/js/emotion_keywords_table.js"></script>

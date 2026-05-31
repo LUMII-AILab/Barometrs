@@ -1,5 +1,6 @@
+from collections import defaultdict
 from datetime import date
-from sqlalchemy import func, text
+from sqlalchemy import func, text, cast, Date
 from sqlalchemy.orm import Session
 from db import models
 
@@ -75,7 +76,7 @@ def get_aggressiveness_by_period_per_website(session: Session, start_date: date,
     return result
 
 
-def get_aggressive_keywords_count_by_day(session: Session, request_date: date, lang: str):
+def get_aggressiveness_by_period_precomputed(session: Session, request_date: date, lang: str):
     supported_languages = ['lv', 'ru']
 
     if lang and lang != 'all' and lang in supported_languages:
@@ -112,6 +113,141 @@ def get_aggressive_keywords_count_by_day(session: Session, request_date: date, l
             'count': row.count,
         }
         for row in rows
+    ]
+
+
+def get_aggressive_keywords_by_day_precomputed(session: Session, request_date: date, lang: str, website: str = 'all'):
+    row = (
+        session.query(models.AggressiveKeywordsByDay)
+        .filter(
+            func.date_trunc('day', models.AggressiveKeywordsByDay.date) == request_date,
+            models.AggressiveKeywordsByDay.language == lang,
+            models.AggressiveKeywordsByDay.website == website,
+        )
+        .first()
+    )
+    if not row or not row.keywords_json:
+        return []
+
+    return sorted(
+        [
+            {
+                'word': word,
+                'count': v['count'],
+                'weight_sum': v['weight_sum'],
+                'article_count': v.get('article_count', 0),
+                'forms': v.get('forms', {}),
+            }
+            for word, v in row.keywords_json.items()
+        ],
+        key=lambda x: x['count'],
+        reverse=True,
+    )
+
+
+def get_aggressive_keywords_by_period(session: Session, start_date: date, end_date: date, lang: str, website: str = 'all'):
+    rows = (
+        session.query(models.AggressiveKeywordsByDay)
+        .filter(
+            models.AggressiveKeywordsByDay.language == lang,
+            models.AggressiveKeywordsByDay.website == website,
+            models.AggressiveKeywordsByDay.date >= start_date,
+            models.AggressiveKeywordsByDay.date <= end_date,
+        )
+        .all()
+    )
+
+    merged = defaultdict(lambda: {
+        'count': 0,
+        'weight_sum': 0.0,
+        'forms': defaultdict(int),
+        'article_ids': set(),
+    })
+    for row in rows:
+        if not row.keywords_json:
+            continue
+        for word, v in row.keywords_json.items():
+            m = merged[word]
+            m['count'] += v['count']
+            m['weight_sum'] += v['weight_sum']
+            for form, cnt in v.get('forms', {}).items():
+                m['forms'][form] += cnt
+            m['article_ids'].update(v.get('article_ids', []))
+
+    return sorted(
+        [
+            {
+                'word': word,
+                'count': v['count'],
+                'weight_sum': v['weight_sum'],
+                'article_count': len(v['article_ids']),
+                'forms': dict(v['forms']),
+            }
+            for word, v in merged.items()
+        ],
+        key=lambda x: x['count'],
+        reverse=True,
+    )
+
+
+def get_aggressive_keywords_dates(session: Session, start_date: date, end_date: date, lang: str, website: str = 'all'):
+    rows = (
+        session.query(cast(models.AggressiveKeywordsByDay.date, Date).label('d'))
+        .filter(
+            models.AggressiveKeywordsByDay.language == lang,
+            models.AggressiveKeywordsByDay.website == website,
+            models.AggressiveKeywordsByDay.date >= start_date,
+            models.AggressiveKeywordsByDay.date <= end_date,
+        )
+        .order_by(models.AggressiveKeywordsByDay.date.desc())
+        .all()
+    )
+    return [str(r.d) for r in rows]
+
+
+def get_aggressive_keyword_articles(
+    session: Session,
+    lemma: str,
+    start_date: date,
+    end_date: date,
+    lang: str,
+    website: str = 'all',
+):
+    rows = (
+        session.query(models.AggressiveKeywordsByDay)
+        .filter(
+            models.AggressiveKeywordsByDay.language == lang,
+            models.AggressiveKeywordsByDay.website == website,
+            models.AggressiveKeywordsByDay.date >= start_date,
+            models.AggressiveKeywordsByDay.date <= end_date,
+        )
+        .all()
+    )
+
+    article_ids = set()
+    for row in rows:
+        if row.keywords_json and lemma in row.keywords_json:
+            article_ids.update(row.keywords_json[lemma].get('article_ids', []))
+
+    if not article_ids:
+        return []
+
+    articles = (
+        session.query(models.Article)
+        .filter(models.Article.article_id.in_(article_ids))
+        .order_by(models.Article.pub_timestamp.desc())
+        .all()
+    )
+
+    return [
+        {
+            'article_id': a.article_id,
+            'headline': a.headline,
+            'url': a.url,
+            'website': a.website,
+            'pub_timestamp': a.pub_timestamp.strftime('%Y-%m-%d') if a.pub_timestamp else None,
+        }
+        for a in articles
     ]
 
 

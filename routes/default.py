@@ -133,15 +133,63 @@ def read_aggressiveness_by_period_per_website(
 def read_aggressive_keywords_by_day(
     language: str,
     requestDate: str = Query(..., pattern="^\\d{4}-\\d{2}-\\d{2}$"),
+    website: str = 'all',
     session: Session = Depends(database.get_session)
 ):
     request_date = datetime.strptime(requestDate, "%Y-%m-%d").date()
-    return agg_crud.get_aggressive_keywords_count_by_day(session, request_date, language)
+    return agg_crud.get_aggressive_keywords_by_day_precomputed(session, request_date, language, website)
+
+
+@router.get("/aggressive_keywords_by_period")
+def read_aggressive_keywords_by_period(
+    language: str,
+    startDate: str = Query(..., pattern="^\\d{4}-\\d{2}-\\d{2}$"),
+    endDate: str = Query(..., pattern="^\\d{4}-\\d{2}-\\d{2}$"),
+    website: str = 'all',
+    session: Session = Depends(database.get_session)
+):
+    cache_key = f"agg_kw_{language}_{website}_{startDate}_{endDate}"
+    cached = r.get(cache_key)
+    if cached:
+        return pickle.loads(cached)
+
+    start_date = datetime.strptime(startDate, "%Y-%m-%d").date()
+    end_date = datetime.strptime(endDate, "%Y-%m-%d").date()
+    result = agg_crud.get_aggressive_keywords_by_period(session, start_date, end_date, language, website)
+    r.set(cache_key, pickle.dumps(result))
+    return result
 
 
 @router.get("/aggressive_keywords")
 def read_aggressive_keywords(session: Session = Depends(database.get_session)):
     return agg_crud.get_all_aggressive_keywords(session)
+
+
+@router.get("/aggressive_keywords_dates")
+def read_aggressive_keywords_dates(
+    language: str,
+    startDate: str = Query(..., pattern="^\\d{4}-\\d{2}-\\d{2}$"),
+    endDate: str = Query(..., pattern="^\\d{4}-\\d{2}-\\d{2}$"),
+    website: str = 'all',
+    session: Session = Depends(database.get_session)
+):
+    start_date = datetime.strptime(startDate, "%Y-%m-%d").date()
+    end_date = datetime.strptime(endDate, "%Y-%m-%d").date()
+    return agg_crud.get_aggressive_keywords_dates(session, start_date, end_date, language, website)
+
+
+@router.get("/aggressive_keyword_articles")
+def read_aggressive_keyword_articles(
+    lemma: str,
+    language: str,
+    startDate: str = Query(..., pattern="^\\d{4}-\\d{2}-\\d{2}$"),
+    endDate: str = Query(..., pattern="^\\d{4}-\\d{2}-\\d{2}$"),
+    website: str = 'all',
+    session: Session = Depends(database.get_session)
+):
+    start_date = datetime.strptime(startDate, "%Y-%m-%d").date()
+    end_date = datetime.strptime(endDate, "%Y-%m-%d").date()
+    return agg_crud.get_aggressive_keyword_articles(session, lemma, start_date, end_date, language, website)
 
 
 @router.get("/predicted_comments_emotion_keywords")

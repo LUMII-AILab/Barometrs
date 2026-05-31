@@ -360,6 +360,14 @@ const tabVisibility = {
         '#emotionKeywordContainer': false,
         '#aggressiveKeywordContainer': true
     },
+    '#kwfreqTabPane': {
+        '.controls-card': true,
+        '.view-controls': false,
+        '.details-header': false,
+        '#detailSection': false,
+        '#emotionKeywordContainer': false,
+        '#aggressiveKeywordContainer': false
+    },
     '#aggressiveKeywordsListTabPane': {
         '.controls-card': false,
         '.view-controls': false,
