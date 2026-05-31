@@ -218,4 +218,11 @@
     $('#requestAnalysis').on('click', function () {
         if (document.getElementById('kwfreqTabPane').classList.contains('show')) loadDates();
     });
+    $('#kwfreqDownloadPng').on('click', function () {
+        const canvas = document.getElementById('kwfreqWordCloud');
+        const a = document.createElement('a');
+        a.href = canvas.toDataURL('image/png');
+        a.download = 'wordcloud.png';
+        a.click();
+    });
 })();

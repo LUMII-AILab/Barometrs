@@ -63,6 +63,7 @@
 }
 
 .kwfreq-cloud-panel {
+    position: relative;
     border: 1px solid #dee2e6;
     border-radius: 4px;
     overflow: hidden;
@@ -73,6 +74,26 @@
 
 .kwfreq-cloud-panel canvas {
     display: block;
+}
+
+.kwfreq-download-btn {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    padding: 2px 8px;
+    font-size: 0.78rem;
+    background: rgba(255,255,255,0.85);
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #495057;
+    line-height: 1.4;
+    z-index: 1;
+}
+
+.kwfreq-download-btn:hover {
+    background: #fff;
+    border-color: #adb5bd;
 }
 
 .kwfreq-detail-row {
