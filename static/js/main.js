@@ -345,6 +345,7 @@ updateCharts($('#chartOption').val());
 
 const tabVisibility = {
     '#emotionsTabPane': {
+        '.tab-bar-row': true,
         '.controls-card': true,
         '.view-controls': true,
         '.details-header': true,
@@ -353,6 +354,7 @@ const tabVisibility = {
         '#aggressiveKeywordContainer': false
     },
     '#aggressivenessTabPane': {
+        '.tab-bar-row': true,
         '.controls-card': true,
         '.view-controls': false,
         '.details-header': true,
@@ -361,6 +363,7 @@ const tabVisibility = {
         '#aggressiveKeywordContainer': true
     },
     '#kwfreqTabPane': {
+        '.tab-bar-row': false,
         '.controls-card': true,
         '.view-controls': false,
         '.details-header': false,
@@ -369,6 +372,7 @@ const tabVisibility = {
         '#aggressiveKeywordContainer': false
     },
     '#aggressiveKeywordsListTabPane': {
+        '.tab-bar-row': false,
         '.controls-card': false,
         '.view-controls': false,
         '.details-header': false,
