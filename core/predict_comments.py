@@ -1,5 +1,7 @@
 import time
+from datasets import Dataset as HFDataset
 from tqdm import tqdm
+from transformers.pipelines.pt_utils import KeyDataset
 from sqlalchemy.orm import sessionmaker
 from db import models, crud_utils, database
 from core import load_model
@@ -8,15 +10,12 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=database.eng
 session = SessionLocal()
 
 CHUNK_SIZE = 10_000
-PIPELINE_BATCH_SIZE = 64
+PIPELINE_BATCH_SIZE = 128
 
-def process_predictions(predictions):
-    flat_predictions = [item for sublist in predictions for item in sublist]
-    emotion_dict = {emotion['label']: round(emotion['score'], 5) for emotion in flat_predictions}
+def process_predictions(prediction):
+    emotion_dict = {emotion['label']: round(emotion['score'], 5) for emotion in prediction}
     max_emotion = max(emotion_dict, key=emotion_dict.get)
-    max_emotion_score = emotion_dict[max_emotion]
-
-    return emotion_dict, max_emotion, max_emotion_score
+    return emotion_dict, max_emotion, emotion_dict[max_emotion]
 
 def process_language(pipeline, lang, website=None):
     total = crud_utils.get_unpredicted_comment_count_by_lang(session, lang, website)
@@ -34,24 +33,25 @@ def process_language(pipeline, lang, website=None):
                 break
 
             texts = [c.comment_text for c in batch]
-            results = list(pipeline(iter(texts), batch_size=PIPELINE_BATCH_SIZE, truncation=True))
+            ds = HFDataset.from_dict({"text": texts})
+            results = list(pipeline(KeyDataset(ds, "text"), batch_size=PIPELINE_BATCH_SIZE, truncation=True))
 
             objects = []
             for comment, prediction in zip(batch, results):
-                emotion_dict, max_emotion, max_score = process_predictions([prediction])
-                objects.append(models.PredictedComment(
-                    comment_id=comment.id,
-                    comment_timestamp=comment.timestamp,
-                    article_id=comment.article_id,
-                    text=comment.comment_text,
-                    text_lang=lang,
-                    website=comment.website,
-                    ekman_prediction_json=emotion_dict,
-                    ekman_prediction_emotion=max_emotion,
-                    ekman_prediction_score=max_score,
-                ))
+                emotion_dict, max_emotion, max_score = process_predictions(prediction)
+                objects.append({
+                    'comment_id': comment.id,
+                    'comment_timestamp': comment.timestamp,
+                    'article_id': comment.article_id,
+                    'text': comment.comment_text,
+                    'text_lang': lang,
+                    'website': comment.website,
+                    'ekman_prediction_json': emotion_dict,
+                    'ekman_prediction_emotion': max_emotion,
+                    'ekman_prediction_score': max_score,
+                })
 
-            session.bulk_save_objects(objects)
+            session.bulk_insert_mappings(models.PredictedComment, objects)
             session.commit()
             processed += len(objects)
             last_id = batch[-1].id
