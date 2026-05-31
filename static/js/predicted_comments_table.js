@@ -22,18 +22,18 @@ function createPredictedCommentsTable() {
             }
 
             if (value.includes('emotion_separator')) {
-                emotion = value.split('emotion_separator')[0];
-                return "Emotion: " + emotion + "<span style='color:#d00; margin-left:10px;'>(" + count + " comments)</span>";
+                const emotion = value.split('emotion_separator')[0];
+                return `Emotion: <strong>${emotion}</strong> <span class="badge bg-secondary-subtle ms-2">${count} comments</span>`;
             } else {
-                article_title = value.split('separator')[0];
-                article_url = value.split('separator')[2];
-                article_url_element = "<a href='" + article_url + "' target='_blank'>" + article_url + "</a>";
-
-                return article_title + ' ' + article_url_element + "<span style='color:#d00; margin-left:10px;'>(" + count + " comments)</span>";
+                const parts = value.split('separator');
+                const title = parts[0];
+                const url   = parts[2];
+                const link  = url ? `<a href="${url}" target="_blank" rel="noopener"
+                                        style="font-size:0.8em;margin-left:8px;color:#6c757d;font-weight:400">↗ open</a>` : '';
+                return `${title}${link} <span class="badge bg-secondary-subtle ms-2">${count} comments</span>`;
             }
         },
         columns: [
-            {title: "ID", field: "id", width: 30},
             {title: "Comment", field: "comment_text", formatter: "textarea", hozAlign: "left", headerFilter: "input"},
             {title: "Language", field: "comment_lang", hozAlign: "left", width: 30},
             {title: "Article ID", field: "article_id", hozAlign: "left", width: 30, visible: false},
