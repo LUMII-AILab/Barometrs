@@ -38,6 +38,9 @@ class Article(Base):
 
 class PredictedComment(Base):
     __tablename__ = "predicted_comments"
+    __table_args__ = (
+        Index('idx_predicted_comments_ts_lang_ekman', 'comment_timestamp', 'text_lang', 'ekman_prediction_emotion'),
+    )
 
     id = Column(Integer, primary_key=True)
     comment_id = Column(Integer, ForeignKey('comments.id'), index=True)
@@ -78,6 +81,9 @@ class LogCommentsImport(Base):
 
 class EmotionKeywordsByDay(Base):
     __tablename__ = "emotion_keywords_by_day"
+    __table_args__ = (
+        Index('idx_emotion_keywords_date_lang_type', 'date', 'language', 'prediction_type'),
+    )
 
     id = Column(Integer, primary_key=True)
     date = Column(TIMESTAMP, index=True)
