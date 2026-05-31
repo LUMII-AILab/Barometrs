@@ -4,7 +4,6 @@
     <title>Barometrs 2</title>
     <script src="/static/modules/bootstrap-5.3.8-dist/js/bootstrap.bundle.js"></script>
     <script src="/static/modules/jquery-3.7.1-min/jquery.js"></script>
-    <script src="/static/modules/plotly-3.4.0.min.js"></script>
     <script src="/static/modules/echarts-6.0.0.min.js"></script>
     <script src="/static/modules/tabulator/dist/js/tabulator.min.js"></script>
 
@@ -51,32 +50,13 @@
             <div class="loading-spinner">
                 <div class="spinner-border text-primary"></div>
             </div>
-            <div class="loading-spinner">
-                <div class="spinner-border text-primary"></div>
-            </div>
-            <div class="loading-spinner">
-                <div class="spinner-border text-primary"></div>
-            </div>
         </div>
 
         <div class="tab-content" id="mainTabsContent">
             <div class="tab-pane fade show active" id="emotionsTabPane" role="tabpanel">
-                <div id="charts" class="chart-flex-container">
-                    <div class="chart chart-title">LV Comments</div>
-                    <div class="chart chart-title">RU Comments</div>
-                    <div class="chart chart-title">All Comments</div>
-                    <div class="chart lv-chart" id="emotionsPercentDayChartLV"></div>
-                    <div class="chart ru-chart" id="emotionsPercentDayChartRU"></div>
-                    <div class="chart totals-chart" id="emotionsPercentDayChartTotal"></div>
-                    <div class="chart lv-chart" id="emotionsPercentPieChartLV"></div>
-                    <div class="chart ru-chart" id="emotionsPercentPieChartRU"></div>
-                    <div class="chart totals-chart" id="emotionsPercentPieChartTotal"></div>
-                    <div class="chart lv-chart" id="emotionsCountDayChartLV"></div>
-                    <div class="chart ru-chart" id="emotionsCountDayChartRU"></div>
-                    <div class="chart totals-chart" id="emotionsCountDayChartTotal"></div>
-                    <div class="chart lv-chart" id="commentAndArticleCountChartLV"></div>
-                    <div class="chart ru-chart" id="commentAndArticleCountChartRU"></div>
-                    <div class="chart totals-chart" id="commentAndArticleCountChartTotal"></div>
+                <div id="charts">
+                    <div id="emotionsPercentDayChart" class="emotion-chart"></div>
+                    <div id="commentAndArticleCountChart" class="emotion-chart"></div>
                 </div>
             </div>
             <div class="tab-pane fade" id="aggressivenessTabPane" role="tabpanel">

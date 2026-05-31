@@ -1,65 +1,46 @@
 function getQuantifier(groupBy) {
-    let quantifier = '';
-    if (groupBy === 'month') {
-        quantifier = 'Monthly';
-    } else if (groupBy === 'week') {
-        quantifier = 'Weekly';
-    } else if (groupBy === 'day') {
-        quantifier = 'Daily';
-    }
-
-    return quantifier;
+    if (groupBy === 'month') return 'Monthly';
+    if (groupBy === 'week') return 'Weekly';
+    if (groupBy === 'day') return 'Daily';
+    return '';
 }
 
-// TODO: fix ticks and tick events.
-function getXAxisConfig(start, groupBy) {
-    let config = {};
-    if (groupBy === 'month') {
-        config = {
-            title: 'Month',
-            showticklabels: true,
-            tickangle: 'auto',
-            tick0: start,
-            dtick: 'M1',
-        };
-    } else if (groupBy === 'week') {
-        config = {
-            title: 'Week',
-            showticklabels: true,
-            tickangle: 'auto',
-            tick0: start,
-        };
-    } else if (groupBy === 'day') {
-        config = {
-            title: 'Date',
-            showticklabels: true,
-            tickangle: 'auto',
-            tick0: start,
-        };
-    }
+// ECharts instances for emotion charts, keyed by container ID
+const emotionCharts = {};
 
-    return config;
+function handleEmotionChartClick(date, lang) {
+    const requestForm = $('#analysisRequestForm');
+    $('#requestDate').html(date);
+    requestForm.find('[name="requestDate"]').val(date);
+    requestForm.find('[name="language"]').val(lang);
+    createPredictedCommentsTable();
+    createEmotionKeywordsTable();
+    createAggressiveKeywordsTable();
 }
 
-// Plot charts
 $(document).ready(function() {
     const colorMap = {
-      "neutral":  "#D9D9D9",  // Softer gray; enough contrast with labels but less glare
-      "joy":      "#FFC72C",  // Rich golden yellow; higher contrast vs white backgrounds
-      "surprise": "#FF8C42",  // Vivid orange distinct from joy’s yellow
-      "anger":    "#D62828",  // Strong red with slightly darker value for text contrast
-      "sadness":  "#2878B5",  // Mid-blue with good readability in thin wedges
-      "fear":     "#7A3EB1",  // Clear violet; differentiated from both blue and red
-      "disgust":  "#6DAA2C"   // Cooler green to separate from yellow/orange family
-    }
+        "neutral":  "#D9D9D9",
+        "joy":      "#FFC72C",
+        "surprise": "#FF8C42",
+        "anger":    "#D62828",
+        "sadness":  "#2878B5",
+        "fear":     "#7A3EB1",
+        "disgust":  "#6DAA2C"
+    };
+
+    const EMOTIONS = Object.keys(colorMap);
+
+    window.addEventListener('resize', function() {
+        Object.values(emotionCharts).forEach(c => c.resize());
+    });
 
     $('#requestAnalysis').click(function () {
-        $('.chart').each(function() {
-            Plotly.purge(this);
-        });
+        Object.values(emotionCharts).forEach(c => c.dispose());
+        Object.keys(emotionCharts).forEach(k => delete emotionCharts[k]);
 
         $('.loading-spinners').show();
-        $('#charts').height('0');
+        $('#charts').hide();
         $('#aggressivenessCharts').height('0');
 
         const requestForm = $('#analysisRequestForm');
@@ -68,7 +49,6 @@ $(document).ready(function() {
     });
 
     function requestAndProcessAnalysisData() {
-        // Get data from form inputs
         const form = $('#analysisRequestForm');
         const groupBy = form.find('[name="analysisGroupBy"]').val();
         const formData = {
@@ -78,38 +58,22 @@ $(document).ready(function() {
             predictionType: form.find('[name="currentPredictionType"]').val()
         };
 
-        // Post request
         $.ajax({
             url: '/predicted_comments_max_emotion_charts',
             type: 'POST',
-            contentType: 'application/json', // Set content type to JSON
-            data: JSON.stringify(formData), // Convert formData object to JSON
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
             dataType: 'json',
             success: function (data) {
-                // lv
-                plotEmotionsPercentPeriodChart(data.lv, 'emotionsPercentDayChartLV', groupBy, 'LV');
-                plotEmotionsGroupedPercentPeriodPieChart(data.lv, 'emotionsPercentPieChartLV', 'LV');
-                plotEmotionsCountPediodChart(data.lv, 'emotionsCountDayChartLV', groupBy, 'LV');
-                plotCommentAndArticleCountChart(data.lv, 'commentAndArticleCountChartLV', groupBy, 'LV');
-
-                // ru
-                plotEmotionsPercentPeriodChart(data.ru, 'emotionsPercentDayChartRU', groupBy, 'RU');
-                plotEmotionsGroupedPercentPeriodPieChart(data.ru, 'emotionsPercentPieChartRU', 'RU');
-                plotEmotionsCountPediodChart(data.ru, 'emotionsCountDayChartRU', groupBy, 'RU');
-                plotCommentAndArticleCountChart(data.ru, 'commentAndArticleCountChartRU', groupBy, 'RU');
-
-                // total
-                plotEmotionsPercentPeriodChart(data.total, 'emotionsPercentDayChartTotal', groupBy, 'LV+RU');
-                plotEmotionsGroupedPercentPeriodPieChart(data.total, 'emotionsPercentPieChartTotal', 'LV+RU');
-                plotEmotionsCountPediodChart(data.total, 'emotionsCountDayChartTotal', groupBy, 'LV+RU');
-                plotCommentAndArticleCountChart(data.total, 'commentAndArticleCountChartTotal', groupBy, 'LV+RU');
+                plotEmotionsPercentPeriodChart(data.lv, data.ru, 'emotionsPercentDayChart', groupBy);
+                plotCommentAndArticleCountChart(data.lv, data.ru, 'commentAndArticleCountChart', groupBy);
             },
             error: function (error) {
                 console.error('There was an error!', error);
             },
             complete: function() {
                 $('.loading-spinners').hide();
-                $('#charts').height('auto');
+                $('#charts').show();
                 setTimeout(updateChartOverlays, 500);
             }
         });
@@ -118,147 +82,164 @@ $(document).ready(function() {
         fetchAndPlotAggressivenessByWebsite(formData, groupBy);
     }
 
-    function plotEmotionsPercentPeriodChart(data, chartId, groupBy, language) {
-        const chartData = data.emotion_percent_per_period;
-        const traces = getEmotionTraces(chartData);
-
-        const layout = {
-            title: getQuantifier(groupBy) + ' Percentage of Predominant Emotions in Comments (' + language + ')',
-            xaxis: getXAxisConfig(data.chartStart, groupBy),
-            yaxis: {
-                title: 'Percentage of Emotions (%)',
-                tickformat: '.2%',
-            }
-        };
-
-        Plotly.newPlot(chartId, traces, layout, {responsive: true});
-
-        const chartDiv = $('#' + chartId);
-
-        addRequestPredictedCommentsOnClickToChart(chartDiv);
+    function initChart(chartId) {
+        const dom = document.getElementById(chartId);
+        if (emotionCharts[chartId]) emotionCharts[chartId].dispose();
+        const chart = echarts.init(dom);
+        emotionCharts[chartId] = chart;
+        return chart;
     }
 
-    function getEmotionTraces(data) {
-        const traces = [];
+    function extractDate(params) {
+        const d = new Date(params.value[0]);
+        return d.getUTCFullYear() + '-' +
+            String(d.getUTCMonth() + 1).padStart(2, '0') + '-' +
+            String(d.getUTCDate()).padStart(2, '0');
+    }
 
-        // Iterate over all periods to get all emotions
-        const allEmotions = {};
-        Object.keys(data).forEach(month => {
-            const emotions = data[month];
-            Object.keys(emotions).forEach(emotion => {
-                allEmotions[emotion] = true;
-            });
+    function registerClickHandler(chart) {
+        chart.on('click', function(params) {
+            if (!Array.isArray(params.value)) return;
+            const lang = params.seriesName.startsWith('LV') ? 'lv'
+                       : params.seriesName.startsWith('RU') ? 'ru' : 'all';
+            handleEmotionChartClick(extractDate(params), lang);
         });
+    }
 
-        // Create a trace for each emotion
-        Object.keys(allEmotions).forEach(emotion => {
-            const x = [];
-            const y = [];
+    function mergedLineSeries(lvData, ruData, emotion) {
+        const color = colorMap[emotion] || '#888';
+        return [
+            {
+                name: 'LV ' + emotion,
+                type: 'line',
+                showSymbol: false,
+                data: Object.entries(lvData).map(([p, v]) => [p, v[emotion] || 0]),
+                itemStyle: { color },
+                lineStyle: { color, type: 'solid' },
+                legendGroupId: 'lv'
+            },
+            {
+                name: 'RU ' + emotion,
+                type: 'line',
+                showSymbol: false,
+                data: Object.entries(ruData).map(([p, v]) => [p, v[emotion] || 0]),
+                itemStyle: { color },
+                lineStyle: { color, type: 'dashed' },
+                legendGroupId: 'ru'
+            }
+        ];
+    }
 
-            // Collect data for each period
-            Object.keys(data).forEach(period => {
-                x.push(period);
-                y.push(data[period][emotion] || 0); // Use zero if no data exists for this emotion in the month
-            });
+    function dualLegend(lvNames, ruNames) {
+        return [
+            {
+                id: 'lv',
+                data: lvNames,
+                orient: 'horizontal',
+                bottom: '95px',
+                left: 'center',
+                selector: [{ type: 'all', title: 'All LV' }, { type: 'inverse', title: 'None' }],
+                selectorPosition: 'start',
+                textStyle: { fontSize: 12 }
+            },
+            {
+                id: 'ru',
+                data: ruNames,
+                orient: 'horizontal',
+                bottom: '55px',
+                left: 'center',
+                selector: [{ type: 'all', title: 'All RU' }, { type: 'inverse', title: 'None' }],
+                selectorPosition: 'start',
+                textStyle: { fontSize: 12 }
+            }
+        ];
+    }
 
-            // Push a new trace for the current emotion
-            traces.push({
-                x: x,
-                y: y,
-                type: 'scatter',  // Line chart
-                mode: 'lines+markers',
-                name: emotion,
-                line: {
-                    color: colorMap[emotion] // Use a predefined color for each emotion
+    function lineChartBase() {
+        return {
+            grid: { bottom: '150px' },
+            dataZoom: [
+                { type: 'inside', xAxisIndex: 0 },
+                { type: 'slider', xAxisIndex: 0, bottom: '10px', height: '40px' }
+            ],
+            toolbox: {
+                feature: {
+                    dataZoom: { yAxisIndex: 'none', title: { zoom: 'Zoom', back: 'Reset zoom' } },
+                    saveAsImage: { title: 'Download PNG' }
                 }
-            });
-        });
-
-        return traces;
+            },
+            xAxis: { type: 'time' }
+        };
     }
 
-    function plotEmotionsCountPediodChart(data, chartId, groupBy, language) {
-        const chartData = data.emotion_count_per_period;
-        const traces = getEmotionTraces(chartData);
+    function plotEmotionsPercentPeriodChart(lvData, ruData, chartId, groupBy) {
+        const lv = lvData.emotion_percent_per_period;
+        const ru = ruData.emotion_percent_per_period;
 
-        const layout = {
-            title: getQuantifier(groupBy) + ' Count of Predominant Emotions in Comments (' + language + ')',
-            xaxis: getXAxisConfig(data.chartStart, groupBy),
-            yaxis: {
-                title: 'Count of Comments',
-            }
-        };
+        const allEmotions = new Set();
+        [lv, ru].forEach(d => Object.values(d).forEach(e => Object.keys(e).forEach(em => allEmotions.add(em))));
 
-        Plotly.newPlot(chartId, traces, layout, {responsive: true});
+        const emotions = EMOTIONS.filter(e => allEmotions.has(e));
+        const series = emotions.flatMap(e => mergedLineSeries(lv, ru, e));
+        const lvNames = emotions.map(e => 'LV ' + e);
+        const ruNames = emotions.map(e => 'RU ' + e);
 
-        const chartDiv = $('#' + chartId);
-
-        // Add click event to chart
-        addRequestPredictedCommentsOnClickToChart(chartDiv);
+        const chart = initChart(chartId);
+        chart.setOption({
+            ...lineChartBase(),
+            title: { text: getQuantifier(groupBy) + ' % of Predominant Emotions — LV (solid) vs RU (dashed)' },
+            tooltip: {
+                trigger: 'axis',
+                valueFormatter: v => v != null ? (v * 100).toFixed(2) + '%' : '-'
+            },
+            legend: dualLegend(lvNames, ruNames),
+            yAxis: {
+                type: 'value',
+                axisLabel: { formatter: v => (v * 100).toFixed(0) + '%' }
+            },
+            series
+        });
+        registerClickHandler(chart);
     }
 
-    function plotCommentAndArticleCountChart(data, chartId, groupBy, language) {
-        const chartStart = data.chart_start;
-        const comment_count_per_period = data.comment_count_per_period;
-        const article_count_per_period = data.article_count_per_period;
-        const xaxisConfig = getXAxisConfig(chartStart, groupBy);
+    function plotCommentAndArticleCountChart(lvData, ruData, chartId, groupBy) {
+        const lvComments = Object.entries(lvData.comment_count_per_period).map(([d, v]) => [d, v]);
+        const ruComments = Object.entries(ruData.comment_count_per_period).map(([d, v]) => [d, v]);
+        const lvArticles = Object.entries(lvData.article_count_per_period).map(([d, v]) => [d, v]);
+        const ruArticles = Object.entries(ruData.article_count_per_period).map(([d, v]) => [d, v]);
 
-        const traces = [];
-        traces.push({
-            x: Object.keys(comment_count_per_period),
-            y: Object.values(comment_count_per_period),
-            type: 'scatter',  // Line chart
-            mode: 'lines+markers',
-            name: 'Comment Count',
+        const chart = initChart(chartId);
+        chart.setOption({
+            ...lineChartBase(),
+            title: { text: getQuantifier(groupBy) + ' Comment and Article Count — LV (solid) vs RU (dashed)' },
+            tooltip: { trigger: 'axis' },
+            legend: [
+                {
+                    data: ['LV Comments', 'LV Articles'],
+                    orient: 'horizontal', bottom: '95px', left: 'center',
+                    selector: [{ type: 'all', title: 'All LV' }, { type: 'inverse', title: 'None' }],
+                    selectorPosition: 'start'
+                },
+                {
+                    data: ['RU Comments', 'RU Articles'],
+                    orient: 'horizontal', bottom: '55px', left: 'center',
+                    selector: [{ type: 'all', title: 'All RU' }, { type: 'inverse', title: 'None' }],
+                    selectorPosition: 'start'
+                }
+            ],
+            yAxis: { type: 'value', name: 'Count' },
+            series: [
+                { name: 'LV Comments', type: 'line', showSymbol: false, data: lvComments,
+                  itemStyle: { color: '#2878B5' }, lineStyle: { color: '#2878B5', type: 'solid' } },
+                { name: 'RU Comments', type: 'line', showSymbol: false, data: ruComments,
+                  itemStyle: { color: '#2878B5' }, lineStyle: { color: '#2878B5', type: 'dashed' } },
+                { name: 'LV Articles', type: 'line', showSymbol: false, data: lvArticles,
+                  itemStyle: { color: '#FF8C42' }, lineStyle: { color: '#FF8C42', type: 'solid' } },
+                { name: 'RU Articles', type: 'line', showSymbol: false, data: ruArticles,
+                  itemStyle: { color: '#FF8C42' }, lineStyle: { color: '#FF8C42', type: 'dashed' } }
+            ]
         });
-
-        traces.push({
-            x: Object.keys(article_count_per_period),
-            y: Object.values(article_count_per_period),
-            type: 'scatter',  // Line chart
-            mode: 'lines+markers',
-            name: 'Article Count'
-        });
-
-        const layout = {
-            title: getQuantifier(groupBy) + ' Count of Comments and Commented Articles (' + language + ')',
-            xaxis: xaxisConfig,
-            yaxis: {
-                title: 'Count',
-            }
-        };
-
-        Plotly.newPlot(chartId, traces, layout, {responsive: true});
-
-        const chartDiv = $('#' + chartId);
-
-        addRequestPredictedCommentsOnClickToChart(chartDiv);
-    }
-
-    function plotEmotionsGroupedPercentPeriodPieChart(data, chartId, language) {
-        data = data.emotions_grouped_percent_per_period;
-
-        const labels = Object.keys(data);
-        const values = Object.values(data);
-
-        const traces = [{
-            type: 'pie',
-            labels: labels,
-            values: values,
-            textinfo: 'label+percent',
-            textposition: 'outside',
-            automargin: true,
-            marker: {
-                colors: labels.map(emotion => colorMap[emotion])
-            }
-        }];
-
-        const layout = {
-            title: 'Percentage of Predominant Emotions in Comments (' + language + ')',
-            showlegend: true,
-        };
-
-        Plotly.newPlot(chartId, traces, layout, {responsive: true});
+        registerClickHandler(chart);
     }
 
     const requestForm = $('#analysisRequestForm');
@@ -267,58 +248,16 @@ $(document).ready(function() {
 });
 
 
-function adjustChartLayout(option) {
-    const containers = [$('#charts'), $('#aggressivenessCharts')];
-
-    containers.forEach(function(chartContainer) {
-        chartContainer.removeClass('show-lv-charts show-ru-charts show-totals-charts');
-        switch(option) {
-            case 'lv':
-                chartContainer.addClass('show-lv-charts');
-                break;
-            case 'ru':
-                chartContainer.addClass('show-ru-charts');
-                break;
-            case 'totals':
-                chartContainer.addClass('show-totals-charts');
-                break;
-        }
-    });
-    // trigger resize event to adjust chart layout
+function adjustChartLayout() {
     window.dispatchEvent(new Event('resize'));
 }
 
-function applyCompactMode(option) {
-    const layoutConfig = $('#layoutConfig');
-    const checkbox = $('#compactLayoutCheckbox');
-    const compactMode = checkbox.is(':checked');
-    const chartContainer = $('#charts');
-
-    switch(option) {
-        case 'all':
-            layoutConfig.hide();
-            chartContainer.removeClass('compact-layout');
-            break;
-        default:
-            layoutConfig.show();
-            if (!compactMode) {
-                chartContainer.removeClass('compact-layout');
-            } else {
-                chartContainer.addClass('compact-layout');
-            }
-            break;
-    }
+function applyCompactMode() {
     window.dispatchEvent(new Event('resize'));
 }
 
 function updateCharts(language) {
-    applyCompactMode(language);
-    adjustChartLayout(language);
-
-    // as safety measure, trigger resize event with a delay
-    setTimeout(() => {
-        window.dispatchEvent(new Event('resize'));
-    }, 500);
+    setTimeout(() => window.dispatchEvent(new Event('resize')), 500);
 }
 updateCharts($('#chartOption').val());
 
@@ -326,7 +265,7 @@ const tabVisibility = {
     '#emotionsTabPane': {
         '.tab-bar-row': true,
         '.controls-card': true,
-        '.view-controls': true,
+        '.view-controls': false,
         '.details-header': true,
         '#detailSection': true,
         '#emotionKeywordContainer': true,
@@ -366,4 +305,3 @@ document.getElementById('mainTabs').addEventListener('shown.bs.tab', function(e)
     Object.entries(config).forEach(([selector, visible]) => $(selector).toggle(visible));
     window.dispatchEvent(new Event('resize'));
 });
-

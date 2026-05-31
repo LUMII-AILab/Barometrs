@@ -100,68 +100,14 @@ body {
 
 /* === Charts === */
 
-.chart-flex-container {
+#charts {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: flex-start;
+    flex-direction: column;
+    gap: 16px;
+}
 
-    .chart {
-        flex-basis: 33%;
-        height: 400px;
-
-        /* Fix for overflow issue when one-column layout is loaded and user switches to multi-column */
-        min-width: 0;
-        max-width: 100%;
-        box-sizing: border-box;
-
-        &.chart-title {
-            height: 50px;
-            text-align: center;
-            font-size: 1.5em;
-        }
-    }
-
-    &.show-lv-charts,
-    &.show-ru-charts,
-    &.show-totals-charts {
-        .chart {
-            flex-basis: 100%;
-            display: none;
-
-            &.chart-title {
-                display: none;
-            }
-        }
-
-        &.compact-layout {
-            .chart {
-                flex-basis: 100%;
-
-                @media (min-width: 1200px) {
-                    flex-basis: 50%;
-                }
-            }
-        }
-    }
-
-    &.show-lv-charts {
-        .chart.lv-chart {
-            display: block;
-        }
-    }
-
-    &.show-ru-charts {
-        .chart.ru-chart {
-            display: block;
-        }
-    }
-
-    &.show-totals-charts {
-        .chart.totals-chart {
-            display: block;
-        }
-    }
+.emotion-chart {
+    height: 480px;
 }
 
 /* === Tables === */
@@ -209,19 +155,17 @@ body {
 
 .loading-spinners {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: flex-start;
+    flex-direction: column;
+    gap: 16px;
 
     .loading-spinner {
-        flex-basis: 50%;
-        height: 400px;
+        height: 480px;
         text-align: center;
 
         .spinner-border {
             width: 10rem;
             height: 10rem;
-            margin-top: 7rem;
+            margin-top: 10rem;
         }
     }
 }
