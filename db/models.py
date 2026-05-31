@@ -1,5 +1,5 @@
 import datetime
-from sqlalchemy import Column, Integer, String, ForeignKey, TIMESTAMP, Float, Boolean
+from sqlalchemy import Column, Index, Integer, String, ForeignKey, TIMESTAMP, Float, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import JSONB
 
@@ -7,6 +7,9 @@ from .base import Base
 
 class Comment(Base):
     __tablename__ = "comments"
+    __table_args__ = (
+        Index('idx_comments_lang_website_id', 'comment_lang', 'website', 'id'),
+    )
 
     id = Column(Integer, primary_key=True)
     region = Column(String)
