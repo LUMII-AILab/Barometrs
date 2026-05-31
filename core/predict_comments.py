@@ -34,7 +34,7 @@ def process_language(pipeline, lang, website=None):
                 break
 
             texts = [c.comment_text for c in batch]
-            results = pipeline(texts, batch_size=PIPELINE_BATCH_SIZE, truncation=True)
+            results = list(pipeline(iter(texts), batch_size=PIPELINE_BATCH_SIZE, truncation=True))
 
             objects = []
             for comment, prediction in zip(batch, results):
