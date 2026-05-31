@@ -104,7 +104,7 @@
         const canvas = document.getElementById('kwfreqWordCloud');
         const container = canvas.parentElement;
         canvas.width = container.clientWidth || 600;
-        canvas.height = container.clientHeight || 320;
+        canvas.height = container.clientHeight || 500;
 
         const filtered = getFilteredData();
         if (!filtered.length) {
