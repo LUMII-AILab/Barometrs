@@ -133,6 +133,7 @@ def get_aggressive_keywords_by_day_precomputed(session: Session, request_date: d
         [
             {
                 'word': word,
+                'language': lang,
                 'count': v['count'],
                 'weight_sum': v['weight_sum'],
                 'article_count': v.get('article_count', 0),
