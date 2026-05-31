@@ -42,9 +42,17 @@ def get_model_name(short_name: str):
 def get_pipeline_for_model(model_shortname: str):
     model_name = get_model_name(model_shortname)
     model, tokenizer = get_classifier_model_and_tokenizer(model_name)
-    model.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
-    return pipeline("text-classification", model=model, tokenizer=tokenizer, top_k=None, max_length=512,
-                    truncation=True, device=0 if torch.cuda.is_available() else -1)
+    use_cuda = torch.cuda.is_available()
+    if use_cuda:
+        model = model.half()
+    model.to(torch.device("cuda" if use_cuda else "cpu"))
+    model.eval()
+    return pipeline(
+        "text-classification",
+        model=model, tokenizer=tokenizer,
+        top_k=None, max_length=512, truncation=True,
+        device=0 if use_cuda else -1,
+    )
 
 def get_classifier_model_and_tokenizer(model_shortname: str):
     model_name = get_model_name(model_shortname)

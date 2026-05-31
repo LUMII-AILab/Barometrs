@@ -1,5 +1,6 @@
 import time
 import warnings
+import torch
 from tqdm import tqdm
 from sqlalchemy.orm import sessionmaker
 from db import models, crud_utils, database
@@ -33,11 +34,17 @@ def process_language(pipeline, lang, website=None):
             if not batch:
                 break
 
-            texts = [c.comment_text for c in batch]
-            results = pipeline(texts, batch_size=PIPELINE_BATCH_SIZE, truncation=True)
+            last_id = batch[-1].id
+
+            order = sorted(range(len(batch)), key=lambda i: len(batch[i].comment_text or ''))
+            sorted_batch = [batch[i] for i in order]
+            texts = [c.comment_text for c in sorted_batch]
+
+            with torch.inference_mode():
+                results = pipeline(texts, batch_size=PIPELINE_BATCH_SIZE, truncation=True)
 
             objects = []
-            for comment, prediction in zip(batch, results):
+            for comment, prediction in zip(sorted_batch, results):
                 emotion_dict, max_emotion, max_score = process_predictions(prediction)
                 objects.append({
                     'comment_id': comment.id,
@@ -54,7 +61,6 @@ def process_language(pipeline, lang, website=None):
             session.bulk_insert_mappings(models.PredictedComment, objects)
             session.commit()
             processed += len(objects)
-            last_id = batch[-1].id
             progress.update(len(batch))
 
     print(f'[{lang}] done — {processed} comments processed.')
