@@ -1,7 +1,10 @@
 import time
+from datetime import timedelta
 from sqlalchemy.orm import sessionmaker
-from db import database
 from sqlalchemy import cast, Date
+from sklearn.feature_extraction.text import CountVectorizer
+from tqdm import tqdm
+from db import database
 from core import load_model
 from db import models
 import pandas as pd
@@ -10,27 +13,26 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=database.eng
 session = SessionLocal()
 supported_languages = ['lv', 'ru']
 
+
 def extract_keywords_from_comments():
-    query = session.query(
-        models.PredictedComment.text.label('comment_text'),
-        models.PredictedComment.text_lang.label('text_lang'),
-        cast(models.PredictedComment.comment_timestamp, Date).label('comment_date'),
-        models.PredictedComment.ekman_prediction_emotion.label('ekman_emotion'),
-    ).filter(
-        models.PredictedComment.text_lang.in_(supported_languages),
-        models.PredictedComment.ekman_prediction_emotion != '',
+    processed = {
+        (row[0], row[1], row[2])
+        for row in session.query(
+            cast(models.EmotionKeywordsByDay.date, Date),
+            models.EmotionKeywordsByDay.language,
+            models.EmotionKeywordsByDay.prediction_type,
+        ).all()
+    }
+
+    all_dates = sorted(
+        row[0]
+        for row in session.query(
+            cast(models.PredictedComment.comment_timestamp, Date)
+        ).filter(
+            models.PredictedComment.text_lang.in_(supported_languages),
+            models.PredictedComment.ekman_prediction_emotion != '',
+        ).distinct().all()
     )
-
-    results = query.all()
-
-    df = pd.DataFrame(results, columns=['comment_text', 'text_lang', 'comment_date', 'ekman_emotion'])
-
-    # order comments by date
-    df = df.sort_values(by='comment_date')
-
-    def extract_keywords(model, text, stopword_list=None):
-        keywords = model.extract_keywords(text, stop_words=stopword_list, keyphrase_ngram_range=(1, 3), top_n=30)
-        return keywords
 
     kb_lvbert_ekman = load_model.get_keybert_model_by_language_and_prediction_type('lv', 'ekman')
     kb_rubert_ekman = load_model.get_keybert_model_by_language_and_prediction_type('ru', 'ekman')
@@ -40,54 +42,68 @@ def extract_keywords_from_comments():
 
     prediction_configurations = [
         ('ekman', 'lv', kb_lvbert_ekman, lv_stopwords),
-        ('ekman', 'ru', kb_rubert_ekman, ru_stopwords)
+        ('ekman', 'ru', kb_rubert_ekman, ru_stopwords),
     ]
 
-    processed_dates = {
-        row[0] for row in session.query(
-            cast(models.EmotionKeywordsByDay.date, Date)
-        ).all()
-    }
-
-    # Ensure df dates are datetime.date
-    df['comment_date'] = pd.to_datetime(df['comment_date']).dt.date
-
-    # For each day, extract keywords for each emotion and each language
-    for date in df['comment_date'].unique():
-        start = time.time()
-
-        print(f'Processing date: {date}')
-        if date in processed_dates:
-            print(f'Skipping {date} as it has already been processed')
+    for date in tqdm(all_dates, desc='dates', unit='day'):
+        if all((date, lang, pred_type) in processed for pred_type, lang, _, _ in prediction_configurations):
             continue
 
-        date_df = df[df['comment_date'] == date]
+        rows = session.query(
+            models.LemmatizedComment.lemmas,
+            models.PredictedComment.text_lang,
+            models.PredictedComment.ekman_prediction_emotion,
+        ).join(
+            models.LemmatizedComment,
+            models.PredictedComment.comment_id == models.LemmatizedComment.comment_id,
+        ).filter(
+            models.PredictedComment.comment_timestamp >= date,
+            models.PredictedComment.comment_timestamp < date + timedelta(days=1),
+            models.PredictedComment.text_lang.in_(supported_languages),
+            models.PredictedComment.ekman_prediction_emotion != '',
+        ).all()
+
+        date_df = pd.DataFrame(rows, columns=['lemmas', 'text_lang', 'ekman_emotion'])
+        date_df['lemma_text'] = date_df['lemmas'].apply(lambda l: ' '.join(l) if l else '')
 
         for prediction_type, lang, kb_model, stopword_list in prediction_configurations:
-            concat_text = date_df[(date_df['text_lang'] == lang) & (date_df[prediction_type + '_emotion'] != '')].groupby(prediction_type + '_emotion')['comment_text'].agg(lambda texts: ' '.join(texts))
-            emotion_keywords = concat_text.apply(lambda text: extract_keywords(kb_model, text, stopword_list))
+            if (date, lang, prediction_type) in processed:
+                continue
 
-            keywords_df = emotion_keywords.reset_index()
-            keywords_df.columns = ['emotion', 'keywords']
+            emotion_col = prediction_type + '_emotion'
+            docs_by_emotion = (
+                date_df[date_df['text_lang'] == lang]
+                .groupby(emotion_col)['lemma_text']
+                .agg(' '.join)
+            )
 
-            keywords_dict = keywords_df.set_index('emotion').to_dict()['keywords']
+            if docs_by_emotion.empty:
+                continue
 
-            emotion_keywords = models.EmotionKeywordsByDay(
+            emotions = docs_by_emotion.index.tolist()
+            docs = docs_by_emotion.tolist()
+
+            vectorizer = CountVectorizer(
+                ngram_range=(1, 3),
+                stop_words=stopword_list,
+                max_features=5000,
+            )
+
+            all_keywords = kb_model.extract_keywords(docs, vectorizer=vectorizer, top_n=30)
+            keywords_dict = dict(zip(emotions, all_keywords))
+
+            session.add(models.EmotionKeywordsByDay(
                 date=date,
                 language=lang,
                 prediction_type=prediction_type,
-                keywords_json=keywords_dict
-            )
-            session.add(emotion_keywords)
+                keywords_json=keywords_dict,
+            ))
+            session.commit()
 
-        session.commit()
-
-        end = time.time()
-        print(f'Processed {date} in {end - start} seconds')
 
 if __name__ == '__main__':
     predict_start_time = time.time()
     print('Processing comments for keyword extraction...')
     extract_keywords_from_comments()
     predict_end_time = time.time()
-    print(f'Keyword extraction took {predict_end_time - predict_start_time} seconds')
+    print(f'Keyword extraction took {predict_end_time - predict_start_time:.1f}s')
