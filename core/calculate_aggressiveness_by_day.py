@@ -41,7 +41,6 @@ def calculate_aggressiveness():
                 .join(models.Comment, models.LemmatizedComment.comment_id == models.Comment.id)
                 .filter(
                     models.Comment.comment_lang == lang,
-                    cast(models.Comment.timestamp, Date) >= '2020-01-01',
                 )
                 .all()
             )
