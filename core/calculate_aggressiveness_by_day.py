@@ -11,6 +11,41 @@ SUPPORTED_LANGUAGES = ['lv', 'ru']
 WEBSITES = ['tvnet', 'delfi', 'apollo']
 
 
+def _score_lemmas(aggressive_weights, lemmas):
+    if not lemmas:
+        return 0, 0.0
+    count = 0
+    wsum = 0.0
+    for lemma in lemmas:
+        w = aggressive_weights.get(lemma)
+        if w is not None:
+            count += 1
+            wsum += w
+    return count, wsum
+
+
+def _make_records(grouped, scope_name, lang, already_processed):
+    records = []
+    for row in grouped.itertuples(index=False):
+        if (row.comment_date, lang, scope_name) in already_processed:
+            continue
+        total = int(row.total_word_count)
+        agg_count = int(row.aggressive_word_count)
+        agg_weight = float(row.aggressive_word_weight_sum)
+        records.append({
+            'date': row.comment_date,
+            'language': lang,
+            'website': scope_name,
+            'aggressive_word_count': agg_count,
+            'aggressive_word_weight_sum': agg_weight,
+            'total_word_count': total,
+            'aggressiveness_ratio': agg_count / total if total > 0 else 0.0,
+            'weighted_aggressiveness_ratio': agg_weight / total if total > 0 else 0.0,
+        })
+        already_processed.add((row.comment_date, lang, scope_name))
+    return records
+
+
 def calculate_aggressiveness():
     session = SessionLocal()
     try:
@@ -28,6 +63,8 @@ def calculate_aggressiveness():
             ).all()
         }
         print(f'Already processed (date, lang, website) triples: {len(already_processed)}')
+
+        scorer = lambda lemmas: pd.Series(_score_lemmas(aggressive_weights, lemmas))
 
         for lang in SUPPORTED_LANGUAGES:
             months = (
@@ -64,43 +101,39 @@ def calculate_aggressiveness():
                 df = pd.DataFrame(rows, columns=['lemmas', 'lemma_count', 'comment_date', 'website'])
                 df['comment_date'] = pd.to_datetime(df['comment_date']).dt.date
 
-                scopes = [(website, df[df['website'] == website]) for website in WEBSITES]
-                scopes.append(('all', df))
+                # Score every comment once for the whole month
+                df[['agg_count', 'agg_weight']] = df['lemmas'].apply(scorer)
 
-                for scope_name, scope_df in scopes:
-                    for date in scope_df['comment_date'].unique():
-                        if (date, lang, scope_name) in already_processed:
-                            continue
+                agg = dict(
+                    total_word_count=('lemma_count', 'sum'),
+                    aggressive_word_count=('agg_count', 'sum'),
+                    aggressive_word_weight_sum=('agg_weight', 'sum'),
+                )
 
-                        day_df = scope_df[scope_df['comment_date'] == date]
-                        total_word_count = int(day_df['lemma_count'].sum())
-                        aggressive_word_count = 0
-                        aggressive_word_weight_sum = 0.0
+                records = []
+                website_groupbys = []
 
-                        for lemmas in day_df['lemmas']:
-                            if not lemmas:
-                                continue
-                            for lemma in lemmas:
-                                w = aggressive_weights.get(lemma)
-                                if w is not None:
-                                    aggressive_word_count += 1
-                                    aggressive_word_weight_sum += w
+                for website in WEBSITES:
+                    scope_df = df[df['website'] == website]
+                    if scope_df.empty:
+                        continue
+                    grouped = scope_df.groupby('comment_date').agg(**agg).reset_index()
+                    website_groupbys.append(grouped)
+                    records.extend(_make_records(grouped, website, lang, already_processed))
 
-                        ratio = aggressive_word_count / total_word_count if total_word_count > 0 else 0.0
-                        weighted_ratio = aggressive_word_weight_sum / total_word_count if total_word_count > 0 else 0.0
+                # 'all' summed from already-computed per-website groupbys — avoids a second pass through df
+                if website_groupbys:
+                    all_grouped = (
+                        pd.concat(website_groupbys)
+                        .groupby('comment_date', as_index=False)[
+                            ['total_word_count', 'aggressive_word_count', 'aggressive_word_weight_sum']
+                        ]
+                        .sum()
+                    )
+                    records.extend(_make_records(all_grouped, 'all', lang, already_processed))
 
-                        session.add(models.AggressivenessByDay(
-                            date=date,
-                            language=lang,
-                            website=scope_name,
-                            aggressive_word_count=aggressive_word_count,
-                            aggressive_word_weight_sum=aggressive_word_weight_sum,
-                            total_word_count=total_word_count,
-                            aggressiveness_ratio=ratio,
-                            weighted_aggressiveness_ratio=weighted_ratio,
-                        ))
-                        already_processed.add((date, lang, scope_name))
-
+                if records:
+                    session.bulk_insert_mappings(models.AggressivenessByDay, records)
                 session.commit()
 
         print('\nDone.')
