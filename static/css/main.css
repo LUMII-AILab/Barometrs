@@ -153,20 +153,30 @@ body {
 
 /* === Loading spinners === */
 
-.loading-spinners {
+.loadable {
+    position: relative;
+}
+
+.view-spinner {
+    display: none;
+}
+
+.loadable.is-loading {
+    min-height: 480px;
+}
+
+.loadable.is-loading .view-spinner {
     display: flex;
-    flex-direction: column;
-    gap: 16px;
+    position: absolute;
+    inset: 0;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.65);
+    z-index: 10;
 
-    .loading-spinner {
-        height: 480px;
-        text-align: center;
-
-        .spinner-border {
-            width: 10rem;
-            height: 10rem;
-            margin-top: 10rem;
-        }
+    .spinner-border {
+        width: 8rem;
+        height: 8rem;
     }
 }
 

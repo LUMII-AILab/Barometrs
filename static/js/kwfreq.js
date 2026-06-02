@@ -75,13 +75,14 @@
             ? { language: getLang(), startDate, endDate, website: getWebsite() }
             : { language: getLang(), requestDate: date, website: getWebsite() };
 
-        $.get(url, params, function (data) {
+        const req = $.get(url, params, function (data) {
             keywordsData = data;
             selectedWord = null;
             renderList();
             renderCloud();
             resetPanels();
         });
+        withSpinner($('.kwfreq-grid'), req);
     }
 
     function renderList() {

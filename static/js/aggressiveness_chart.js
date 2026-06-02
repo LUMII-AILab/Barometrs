@@ -13,15 +13,13 @@ function _buildDateRange(formData) {
 function fetchAndPlotAggressiveness(formData, groupBy) {
     const { startDate, endDate } = _buildDateRange(formData);
 
-    $.when(
+    return $.when(
         $.getJSON('/aggressiveness_by_period', { language: 'lv', startDate, endDate, groupBy }),
         $.getJSON('/aggressiveness_by_period', { language: 'ru', startDate, endDate, groupBy })
     ).done(function(lvResult, ruResult) {
         plotAggressivenessChart(lvResult[0], ruResult[0], 'aggressivenessRatioChart', groupBy);
-        $('#aggressivenessCharts').height('auto');
     }).fail(function(error) {
         console.error('Error fetching aggressiveness data:', error);
-        $('#aggressivenessCharts').height('auto');
     });
 }
 

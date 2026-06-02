@@ -16,14 +16,12 @@ const _WEBSITE_LABELS = {
 function fetchAndPlotAggressivenessByWebsite(formData, groupBy) {
     const { startDate, endDate } = _buildDateRange(formData);
 
-    $.getJSON('/aggressiveness_by_period_per_website', { startDate, endDate, groupBy })
+    return $.getJSON('/aggressiveness_by_period_per_website', { startDate, endDate, groupBy })
         .done(function(result) {
             plotAggressivenessByWebsiteChart(result, 'aggressivenessWebsiteChart', groupBy);
-            $('#aggressivenessCharts').height('auto');
         })
         .fail(function(error) {
             console.error('Error fetching aggressiveness data by website:', error);
-            $('#aggressivenessCharts').height('auto');
         });
 }
 

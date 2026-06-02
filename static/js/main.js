@@ -5,6 +5,22 @@ function getQuantifier(groupBy) {
     return '';
 }
 
+function withSpinner($target, deferreds) {
+    const pending = [].concat(deferreds).filter(Boolean);
+    $target.addClass('is-loading');
+
+    let remaining = pending.length;
+    if (!remaining) {
+        $target.removeClass('is-loading');
+        return;
+    }
+    pending.forEach(function (d) {
+        d.always(function () {
+            if (--remaining === 0) $target.removeClass('is-loading');
+        });
+    });
+}
+
 // ECharts instances and base series data for emotion charts, keyed by container ID
 const emotionCharts = {};
 const _emotionChartSeries = {};
@@ -61,10 +77,6 @@ $(document).ready(function() {
         Object.keys(emotionCharts).forEach(k => delete emotionCharts[k]);
         Object.keys(_emotionChartSeries).forEach(k => delete _emotionChartSeries[k]);
 
-        $('.loading-spinners').show();
-        $('#charts').hide();
-        $('#aggressivenessCharts').height('0');
-
         const requestForm = $('#analysisRequestForm');
         requestForm.find('[name="currentPredictionType"]').val(requestForm.find('[name="predictionType"]').val());
         requestAndProcessAnalysisData();
@@ -80,7 +92,7 @@ $(document).ready(function() {
             predictionType: form.find('[name="currentPredictionType"]').val()
         };
 
-        $.ajax({
+        const emotionReq = $.ajax({
             url: '/predicted_comments_max_emotion_charts',
             type: 'POST',
             contentType: 'application/json',
@@ -94,15 +106,15 @@ $(document).ready(function() {
                 console.error('There was an error!', error);
             },
             complete: function() {
-                $('.loading-spinners').hide();
-                $('#charts').show();
                 Object.values(emotionCharts).forEach(c => c.resize());
                 setTimeout(updateChartOverlays, 500);
             }
         });
+        withSpinner($('#charts'), emotionReq);
 
-        fetchAndPlotAggressiveness(formData, groupBy);
-        fetchAndPlotAggressivenessByWebsite(formData, groupBy);
+        const aggReq = fetchAndPlotAggressiveness(formData, groupBy);
+        const aggWebsiteReq = fetchAndPlotAggressivenessByWebsite(formData, groupBy);
+        withSpinner($('#aggressivenessCharts'), [aggReq, aggWebsiteReq]);
     }
 
     function initChart(chartId) {
